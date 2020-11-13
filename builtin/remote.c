@@ -16,6 +16,7 @@
 #include "strvec.h"
 #include "commit-reach.h"
 #include "progress.h"
+#include "utf8.h"
 
 static const char * const builtin_remote_usage[] = {
 	"git remote [-v | --verbose]",
@@ -1279,6 +1280,20 @@ static int get_one_entry(struct remote *remote, void *priv)
 	return 0;
 }
 
+static int calc_maxwidth(struct string_list *list)
+{
+	int max = 0;
+
+	for (int i = 0; i < list->nr; i++) {
+		struct string_list_item *item = list->items + i;
+		int w = utf8_strwidth(item->string);
+
+		if (w > max)
+			max = w;
+	}
+	return max;
+}
+
 static int show_all(void)
 {
 	struct string_list list = STRING_LIST_INIT_DUP;
@@ -1292,10 +1307,17 @@ static int show_all(void)
 		string_list_sort(&list);
 		for (i = 0; i < list.nr; i++) {
 			struct string_list_item *item = list.items + i;
-			if (verbose)
-				printf("%s\t%s\n", item->string,
-					item->util ? (const char *)item->util : "");
-			else {
+			if (verbose) {
+				struct strbuf s = STRBUF_INIT;
+
+				strbuf_utf8_align(&s, ALIGN_LEFT,
+						  calc_maxwidth(&list) + 1,
+						  item->string);
+				if (item->util)
+					strbuf_addstr(&s, item->util);
+				printf("%s\n", s.buf);
+				strbuf_release(&s);
+			} else {
 				if (i && !strcmp((item - 1)->string, item->string))
 					continue;
 				printf("%s\n", item->string);
