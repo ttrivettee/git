@@ -249,8 +249,8 @@ test_expect_success 'without subcommand' '
 
 test_expect_success 'without subcommand accepts -v' '
 	cat >expect <<-EOF &&
-	origin	$(pwd)/one (fetch)
-	origin	$(pwd)/one (push)
+	origin $(pwd)/one (fetch)
+	origin $(pwd)/one (push)
 	EOF
 	git -C test remote -v >actual &&
 	test_cmp expect actual
