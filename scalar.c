@@ -664,6 +664,7 @@ static int cmd_reconfigure(int argc, const char **argv)
 	git_config(get_scalar_repos, &scalar_repos);
 
 	for (i = 0; i < scalar_repos.nr; i++) {
+		int succeeded = 0;
 		const char *dir = scalar_repos.items[i].string;
 
 		strbuf_reset(&commondir);
@@ -674,27 +675,51 @@ static int cmd_reconfigure(int argc, const char **argv)
 
 			if (errno != ENOENT) {
 				warning_errno(_("could not switch to '%s'"), dir);
-				res = -1;
-				continue;
+				goto loop_end;
 			}
 
 			strbuf_addstr(&buf, dir);
 			if (remove_deleted_enlistment(&buf))
-				res = error(_("could not remove stale "
-					      "scalar.repo '%s'"), dir);
-			else
-				warning(_("removing stale scalar.repo '%s'"),
+				error(_("could not remove stale "
+					"scalar.repo '%s'"), dir);
+			else {
+				warning(_("removed stale scalar.repo '%s'"),
 					dir);
+				succeeded = 1;
+			}
 			strbuf_release(&buf);
-		} else {
-			git_config_clear();
+			goto loop_end;
+		}
 
-			the_repository = &r;
-			r.commondir = commondir.buf;
-			r.gitdir = gitdir.buf;
+		switch (discover_git_directory_reason(&commondir, &gitdir)) {
+		case GIT_DIR_INVALID_OWNERSHIP:
+			warning(_("repository at '%s' has different owner"), dir);
+			goto loop_end;
 
-			if (set_recommended_config(1) < 0)
-				res = -1;
+		case GIT_DIR_DISCOVERED:
+			succeeded = 1;
+			break;
+
+		default:
+			warning(_("repository not found in '%s'"), dir);
+			break;
+		}
+
+		git_config_clear();
+
+		the_repository = &r;
+		r.commondir = commondir.buf;
+		r.gitdir = gitdir.buf;
+
+		if (set_recommended_config(1) >= 0)
+			succeeded = 1;
+
+loop_end:
+		if (!succeeded) {
+			res = -1;
+			warning(_("to unregister this repository from Scalar, run\n"
+				  "\tgit config --global --unset --fixed-value scalar.repo \"%s\""),
+				dir);
 		}
 	}
 
