@@ -686,9 +686,6 @@ static int cmd_reconfigure(int argc, const char **argv)
 				warning(_("removing stale scalar.repo '%s'"),
 					dir);
 			strbuf_release(&buf);
-		} else if (discover_git_directory(&commondir, &gitdir) < 0) {
-			warning_errno(_("git repository gone in '%s'"), dir);
-			res = -1;
 		} else {
 			git_config_clear();
 
