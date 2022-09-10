@@ -1571,7 +1571,7 @@ test_expect_success FUNNYNAMES,!CYGWIN 'cone mode sparse-checkout completes dire
 	)
 '
 
-test_expect_success 'non-cone mode sparse-checkout uses bash completion' '
+test_expect_success 'non-cone mode sparse-checkout gives rooted paths' '
 	# reset sparse-checkout repo to non-cone mode
 	git -C sparse-checkout sparse-checkout disable &&
 	git -C sparse-checkout sparse-checkout set --no-cone &&
@@ -1581,7 +1581,12 @@ test_expect_success 'non-cone mode sparse-checkout uses bash completion' '
 		# expected to be empty since we have not configured
 		# custom completion for non-cone mode
 		test_completion "git sparse-checkout set f" <<-\EOF
-
+		/folder1/0/1/t.txt 
+		/folder1/expected 
+		/folder1/out 
+		/folder1/out_sorted 
+		/folder2/0/t.txt 
+		/folder3/t.txt 
 		EOF
 	)
 '
