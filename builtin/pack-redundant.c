@@ -63,13 +63,6 @@ static inline struct llist_item *llist_item_get(void)
 	return new_item;
 }
 
-static inline void llist_init(struct llist **list)
-{
-	*list = xmalloc(sizeof(struct llist));
-	(*list)->front = (*list)->back = NULL;
-	(*list)->size = 0;
-}
-
 static void llist_free(struct llist *list)
 {
 	for (struct llist_item *i = list->front, *next; i; i = next) {
@@ -84,7 +77,7 @@ static struct llist * llist_copy(struct llist *list)
 	struct llist *ret;
 	struct llist_item *new_item, *old_item, *prev;
 
-	llist_init(&ret);
+	CALLOC_ARRAY(ret, 1);
 
 	if ((ret->size = list->size) == 0)
 		return ret;
@@ -480,7 +473,7 @@ static void load_all_objects(void)
 	struct pack_list *pl = local_packs;
 	struct llist_item *hint, *l;
 
-	llist_init(&all_objects);
+	CALLOC_ARRAY(all_objects, 1);
 
 	while (pl) {
 		hint = NULL;
@@ -507,7 +500,7 @@ static void cmp_local_packs(void)
 
 	/* only one packfile */
 	if (!pl->next) {
-		llist_init(&pl->unique_objects);
+		CALLOC_ARRAY(pl->unique_objects, 1);
 		return;
 	}
 
@@ -544,7 +537,7 @@ static struct pack_list * add_pack(struct packed_git *p)
 		return NULL;
 
 	l.pack = p;
-	llist_init(&l.remaining_objects);
+	CALLOC_ARRAY(l.remaining_objects, 1);
 
 	if (open_pack_index(p))
 		return NULL;
@@ -650,7 +643,7 @@ int cmd_pack_redundant(int argc, const char **argv, const char *prefix UNUSED, s
 		scan_alt_odb_packs();
 
 	/* ignore objects given on stdin */
-	llist_init(&ignore);
+	CALLOC_ARRAY(ignore, 1);
 	if (!isatty(0)) {
 		struct object_id oid;
 		while (fgets(buf, sizeof(buf), stdin)) {
