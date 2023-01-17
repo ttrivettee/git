@@ -148,11 +148,9 @@ static void get_ac_line(const char *inbuf, const char *what,
 
 	if (split_ident_line(&ident, tmp, len)) {
 	error_out:
-		/* Ugh */
-		tmp = "(unknown)";
-		strbuf_addstr(name, tmp);
-		strbuf_addstr(mail, tmp);
-		strbuf_addstr(tz, tmp);
+		strbuf_addstr(name, "(unknown)");
+		strbuf_addstr(mail, "(unknown)");
+		strbuf_addstr(tz, "(unknown)");
 		*time = 0;
 		return;
 	}

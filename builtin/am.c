@@ -341,13 +341,11 @@ static void write_author_script(const struct am_state *state)
 
 	strbuf_addstr(&sb, "GIT_AUTHOR_NAME=");
 	sq_quote_buf(&sb, state->author_name);
-	strbuf_addch(&sb, '\n');
 
-	strbuf_addstr(&sb, "GIT_AUTHOR_EMAIL=");
+	strbuf_addstr(&sb, "\nGIT_AUTHOR_EMAIL=");
 	sq_quote_buf(&sb, state->author_email);
-	strbuf_addch(&sb, '\n');
 
-	strbuf_addstr(&sb, "GIT_AUTHOR_DATE=");
+	strbuf_addstr(&sb, "\nGIT_AUTHOR_DATE=");
 	sq_quote_buf(&sb, state->author_date);
 	strbuf_addch(&sb, '\n');
 
