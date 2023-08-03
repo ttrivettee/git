@@ -204,9 +204,9 @@ as an alternative to `visualize`):
 $ git bisect visualize
 ------------
 
-If the `DISPLAY` environment variable is not set, 'git log' is used
-instead.  You can also give command-line options such as `-p` and
-`--stat`.
+If none of the environment variables `DISPLAY`, `SESSIONNAME`, `MSYSTEM` and
+`SECURITYSESSIONID` is set, 'git log' is used instead.  You can also give
+command-line options such as `-p` and `--stat`.
 
 ------------
 $ git bisect visualize --stat
