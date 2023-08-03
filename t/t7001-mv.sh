@@ -174,6 +174,12 @@ test_expect_success 'do not move directory over existing directory' '
 	test_must_fail git mv path2 path0
 '
 
+test_expect_success 'rename directory to non-existing directory' '
+	mkdir dir-a && touch dir-a/f &&
+	git add dir-a &&
+	git mv dir-a non-existing-dir
+'
+
 test_expect_success 'move into "."' '
 	git mv path1/path2/ .
 '
