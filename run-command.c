@@ -182,13 +182,10 @@ int is_executable(const char *name)
  * Returns the path to the command, as found in $PATH or NULL if the
  * command could not be found.  The caller inherits ownership of the memory
  * used to store the resultant path.
- *
- * This should not be used on Windows, where the $PATH search rules
- * are more complicated (e.g., a search for "foo" should find
- * "foo.exe").
  */
 static char *locate_in_PATH(const char *file)
 {
+#ifndef GIT_WINDOWS_NATIVE
 	const char *p = getenv("PATH");
 	struct strbuf buf = STRBUF_INIT;
 
@@ -217,6 +214,9 @@ static char *locate_in_PATH(const char *file)
 
 	strbuf_release(&buf);
 	return NULL;
+#else
+	return mingw_path_lookup(file,0);
+#endif
 }
 
 int exists_in_PATH(const char *command)
