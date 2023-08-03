@@ -626,3 +626,9 @@ void open_in_gdb(void);
  * Used by Pthread API implementation for Windows
  */
 int err_win_to_posix(DWORD winerr);
+
+/*
+ * Determines the absolute path of cmd using the split path in path.
+ * If cmd contains a slash or backslash, no lookup is performed.
+ */
+char *mingw_path_lookup(const char *cmd, int exe_only);

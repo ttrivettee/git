@@ -1316,11 +1316,7 @@ static char *lookup_prog(const char *dir, int dirlen, const char *cmd,
 	return NULL;
 }
 
-/*
- * Determines the absolute path of cmd using the split path in path.
- * If cmd contains a slash or backslash, no lookup is performed.
- */
-static char *path_lookup(const char *cmd, int exe_only)
+char *mingw_path_lookup(const char *cmd, int exe_only)
 {
 	const char *path;
 	char *prog = NULL;
@@ -1515,7 +1511,7 @@ static int is_msys2_sh(const char *cmd)
 		if (ret >= 0)
 			return ret;
 
-		p = path_lookup(cmd, 0);
+		p = mingw_path_lookup(cmd, 0);
 		if (!p)
 			ret = 0;
 		else {
@@ -1533,7 +1529,7 @@ static int is_msys2_sh(const char *cmd)
 		static char *sh;
 
 		if (!sh)
-			sh = path_lookup("sh", 0);
+			sh = mingw_path_lookup("sh", 0);
 
 		return !fspathcmp(cmd, sh);
 	}
@@ -1646,7 +1642,7 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 
 	strace_env = getenv("GIT_STRACE_COMMANDS");
 	if (strace_env) {
-		char *p = path_lookup("strace.exe", 1);
+		char *p = mingw_path_lookup("strace.exe", 1);
 		if (!p)
 			return error("strace not found!");
 		if (xutftowcs_path(wcmd, p) < 0) {
@@ -1801,7 +1797,7 @@ pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **deltaenv,
 		     int fhin, int fhout, int fherr)
 {
 	pid_t pid;
-	char *prog = path_lookup(cmd, 0);
+	char *prog = mingw_path_lookup(cmd, 0);
 
 	if (!prog) {
 		errno = ENOENT;
@@ -1812,7 +1808,7 @@ pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **deltaenv,
 
 		if (interpr) {
 			const char *argv0 = argv[0];
-			char *iprog = path_lookup(interpr, 1);
+			char *iprog = mingw_path_lookup(interpr, 1);
 			argv[0] = prog;
 			if (!iprog) {
 				errno = ENOENT;
@@ -1841,7 +1837,7 @@ static int try_shell_exec(const char *cmd, char *const *argv)
 
 	if (!interpr)
 		return 0;
-	prog = path_lookup(interpr, 1);
+	prog = mingw_path_lookup(interpr, 1);
 	if (prog) {
 		int exec_id;
 		int argc = 0;
@@ -1890,7 +1886,7 @@ int mingw_execv(const char *cmd, char *const *argv)
 
 int mingw_execvp(const char *cmd, char *const *argv)
 {
-	char *prog = path_lookup(cmd, 0);
+	char *prog = mingw_path_lookup(cmd, 0);
 
 	if (prog) {
 		mingw_execv(prog, argv);
