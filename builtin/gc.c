@@ -1708,6 +1708,23 @@ static int get_schedule_cmd(const char **cmd, int *is_available)
 	return 1;
 }
 
+MAYBE_UNUSED
+static int get_random_minute(void)
+{
+	static int random_initialized = 0;
+
+	/* Use a static value when under tests. */
+	if (!getenv("GIT_TEST_MAINTENANCE_SCHEDULER"))
+		return 13;
+
+	if (!random_initialized) {
+		srand((unsigned int)getpid());
+		random_initialized = 1;
+	}
+
+	return rand() % 60;
+}
+
 static int is_launchctl_available(void)
 {
 	const char *cmd = "launchctl";
