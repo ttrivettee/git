@@ -2299,13 +2299,20 @@ static char *xdg_config_home_systemd(const char *filename)
 	return xdg_config_home_for("systemd/user", filename);
 }
 
-static int systemd_timer_write_unit_templates(const char *exec_path)
+static int systemd_timer_write_unit_template(enum schedule_priority schedule,
+					     const char *exec_path,
+					     int minute)
 {
 	char *filename;
 	FILE *file;
 	const char *unit;
+	char *schedule_pattern = NULL;
+	const char *frequency = get_frequency(schedule);
+	char *local_timer_name = xstrfmt("git-maintenance@%s.timer", frequency);
+	char *local_service_name = xstrfmt("git-maintenance@%s.service", frequency);
 
-	filename = xdg_config_home_systemd("git-maintenance@.timer");
+	filename = xdg_config_home_systemd(local_timer_name);
+
 	if (safe_create_leading_directories(filename)) {
 		error(_("failed to create directories for '%s'"), filename);
 		goto error;
@@ -2313,6 +2320,23 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	file = fopen_or_warn(filename, "w");
 	if (!file)
 		goto error;
+
+	switch (schedule) {
+	case SCHEDULE_HOURLY:
+		schedule_pattern = xstrfmt("*-*-* *:%02d:00", minute);
+		break;
+
+	case SCHEDULE_DAILY:
+		schedule_pattern = xstrfmt("*-*-* 0:%02d:00", minute);
+		break;
+
+	case SCHEDULE_WEEKLY:
+		schedule_pattern = xstrfmt("Mon 0:%02d:00", minute);
+		break;
+
+	default:
+		BUG("Unhandled schedule_priority");
+	}
 
 	unit = "# This file was created and is maintained by Git.\n"
 	       "# Any edits made in this file might be replaced in the future\n"
@@ -2322,12 +2346,12 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	       "Description=Optimize Git repositories data\n"
 	       "\n"
 	       "[Timer]\n"
-	       "OnCalendar=%i\n"
+	       "OnCalendar=%s\n"
 	       "Persistent=true\n"
 	       "\n"
 	       "[Install]\n"
 	       "WantedBy=timers.target\n";
-	if (fputs(unit, file) == EOF) {
+	if (fprintf(file, unit, schedule_pattern) < 0) {
 		error(_("failed to write to '%s'"), filename);
 		fclose(file);
 		goto error;
@@ -2338,7 +2362,7 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	}
 	free(filename);
 
-	filename = xdg_config_home_systemd("git-maintenance@.service");
+	filename = xdg_config_home_systemd(local_service_name);
 	file = fopen_or_warn(filename, "w");
 	if (!file)
 		goto error;
@@ -2352,7 +2376,7 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	       "\n"
 	       "[Service]\n"
 	       "Type=oneshot\n"
-	       "ExecStart=\"%s/git\" --exec-path=\"%s\" for-each-repo --config=maintenance.repo maintenance run --schedule=%%i\n"
+	       "ExecStart=\"%s/git\" --exec-path=\"%s\" for-each-repo --config=maintenance.repo maintenance run --schedule=%s\n"
 	       "LockPersonality=yes\n"
 	       "MemoryDenyWriteExecute=yes\n"
 	       "NoNewPrivileges=yes\n"
@@ -2362,7 +2386,7 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	       "RestrictSUIDSGID=yes\n"
 	       "SystemCallArchitectures=native\n"
 	       "SystemCallFilter=@system-service\n";
-	if (fprintf(file, unit, exec_path, exec_path) < 0) {
+	if (fprintf(file, unit, exec_path, exec_path, frequency) < 0) {
 		error(_("failed to write to '%s'"), filename);
 		fclose(file);
 		goto error;
@@ -2375,13 +2399,16 @@ static int systemd_timer_write_unit_templates(const char *exec_path)
 	return 0;
 
 error:
+	free(schedule_pattern);
+	free(local_timer_name);
 	free(filename);
-	systemd_timer_delete_unit_templates();
 	return -1;
 }
 
 static int systemd_timer_enable_unit(int enable,
-				     enum schedule_priority schedule)
+				     enum schedule_priority schedule,
+				     const char *exec_path,
+				     int minute)
 {
 	const char *cmd = "systemctl";
 	struct child_process child = CHILD_PROCESS_INIT;
@@ -2398,6 +2425,8 @@ static int systemd_timer_enable_unit(int enable,
 	 */
 	if (!enable)
 		child.no_stderr = 1;
+	else if (systemd_timer_write_unit_template(schedule, exec_path, minute))
+		return -1;
 
 	get_schedule_cmd(&cmd, NULL);
 	strvec_split(&child.args, cmd);
@@ -2420,38 +2449,53 @@ static int systemd_timer_enable_unit(int enable,
 	return 0;
 }
 
-static int systemd_timer_delete_unit_templates(void)
+static int systemd_timer_delete_unit_template(enum schedule_priority priority)
 {
+	const char *frequency = get_frequency(priority);
+	char *local_timer_name = xstrfmt("git-maintenance@%s.timer", frequency);
+	char *local_service_name = xstrfmt("git-maintenance@%s.service", frequency);
 	int ret = 0;
-	char *filename = xdg_config_home_systemd("git-maintenance@.timer");
+	char *filename = xdg_config_home_systemd(local_timer_name);
 	if (unlink(filename) && !is_missing_file_error(errno))
 		ret = error_errno(_("failed to delete '%s'"), filename);
 	FREE_AND_NULL(filename);
 
-	filename = xdg_config_home_systemd("git-maintenance@.service");
+	filename = xdg_config_home_systemd(local_service_name);
 	if (unlink(filename) && !is_missing_file_error(errno))
 		ret = error_errno(_("failed to delete '%s'"), filename);
 
 	free(filename);
+	free(local_timer_name);
+	free(local_service_name);
 	return ret;
+}
+
+static int systemd_timer_delete_unit_templates(void)
+{
+	/* Purposefully not short-circuited to make sure all are called. */
+	return systemd_timer_delete_unit_template(SCHEDULE_HOURLY) |
+	       systemd_timer_delete_unit_template(SCHEDULE_DAILY) |
+	       systemd_timer_delete_unit_template(SCHEDULE_WEEKLY);
 }
 
 static int systemd_timer_delete_units(void)
 {
-	return systemd_timer_enable_unit(0, SCHEDULE_HOURLY) ||
-	       systemd_timer_enable_unit(0, SCHEDULE_DAILY) ||
-	       systemd_timer_enable_unit(0, SCHEDULE_WEEKLY) ||
+	int minute = get_random_minute();
+	const char *exec_path = git_exec_path();
+	return systemd_timer_enable_unit(0, SCHEDULE_HOURLY, exec_path, minute) ||
+	       systemd_timer_enable_unit(0, SCHEDULE_DAILY, exec_path, minute) ||
+	       systemd_timer_enable_unit(0, SCHEDULE_WEEKLY, exec_path, minute) ||
 	       systemd_timer_delete_unit_templates();
 }
 
 static int systemd_timer_setup_units(void)
 {
+	int minute = get_random_minute();
 	const char *exec_path = git_exec_path();
 
-	int ret = systemd_timer_write_unit_templates(exec_path) ||
-		  systemd_timer_enable_unit(1, SCHEDULE_HOURLY) ||
-		  systemd_timer_enable_unit(1, SCHEDULE_DAILY) ||
-		  systemd_timer_enable_unit(1, SCHEDULE_WEEKLY);
+	int ret = systemd_timer_enable_unit(1, SCHEDULE_HOURLY, exec_path, minute) ||
+		  systemd_timer_enable_unit(1, SCHEDULE_DAILY, exec_path, minute) ||
+		  systemd_timer_enable_unit(1, SCHEDULE_WEEKLY, exec_path, minute);
 	if (ret)
 		systemd_timer_delete_units();
 	return ret;
