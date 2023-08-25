@@ -17,6 +17,8 @@ struct repository;
  * rerere_remaining.
  */
 extern void *RERERE_RESOLVED;
+extern void *RERERE_PUNTED;
+extern void *RERERE_THREE_STAGED;
 
 struct rerere_dir;
 struct rerere_id {

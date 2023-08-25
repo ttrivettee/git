@@ -20,10 +20,9 @@
 #include "strmap.h"
 #include "wrapper.h"
 
-#define RESOLVED 0
-#define PUNTED 1
-#define THREE_STAGED 2
 void *RERERE_RESOLVED = &RERERE_RESOLVED;
+void *RERERE_PUNTED = &RERERE_PUNTED;
+void *RERERE_THREE_STAGED = &RERERE_THREE_STAGED;
 
 /* if rerere_enabled == -1, fall back to detection of .git/rr-cache */
 static int rerere_enabled = -1;
@@ -449,8 +448,11 @@ static int handle_path(unsigned char *hash, struct rerere_io *io, int marker_siz
 }
 
 /*
- * Scan the path for conflicts, do the "handle_path()" thing above, and
- * return true iff conflict hunks were found.
+ * For paths with three-way-merge conflicts, scan the current contents
+ * of the working tree file, do the "handle_path()" thing to compute
+ * the conflict ID and optionally write the noremalized contents of
+ * the working tree file to "output" (typically "thisimage" or
+ * "preimage").
  */
 static int handle_file(struct index_state *istate,
 		       const char *path, unsigned char *hash, const char *output)
@@ -496,25 +498,25 @@ static int handle_file(struct index_state *istate,
 
 /*
  * Look at a cache entry at "i" and see if it is not conflicting
- * (RESOLVED), conflicting and we are willing to handle (THREE_STAGED),
- * or conflicting and we are unable to handle (PUNTED), and return the
- * determination in *type.
+ * (RERERE_RESOLVED), conflicting and we are willing to handle
+ * (RERERE_THREE_STAGED), or conflicting and we are unable to handle
+ * (RERERE_PUNTED), and return the determination in *type.
  *
  * Return the cache index to be looked at next, by skipping the
  * stages we have already looked at in this invocation of this
  * function.
  */
-static int check_one_conflict(struct index_state *istate, int i, int *type)
+static int check_one_conflict(struct index_state *istate, int i, void **type)
 {
 	const struct cache_entry *e = istate->cache[i];
 	unsigned int seen_stages = 0;
 
 	if (!ce_stage(e)) {
-		*type = RESOLVED;
+		*type = RERERE_RESOLVED;
 		return i + 1;
 	}
 
-	*type = PUNTED;
+	*type = RERERE_PUNTED;
 	for (; i < istate->cache_nr; i++) {
 		const struct cache_entry *n = istate->cache[i];
 		if (!ce_same_name(n, e))
@@ -524,7 +526,7 @@ static int check_one_conflict(struct index_state *istate, int i, int *type)
 	}
 
 	if ((seen_stages & 6) == 6)
-		*type = THREE_STAGED; /* has both stages #2 and #3 */
+		*type = RERERE_THREE_STAGED; /* has both stages #2 and #3 */
 
 	return i;
 }
@@ -548,11 +550,16 @@ static int find_conflict(struct repository *r, struct string_list *conflict)
 		return error(_("index file corrupt"));
 
 	for (i = 0; i < r->index->cache_nr;) {
-		int conflict_type;
+		void *conflict_type;
 		const struct cache_entry *e = r->index->cache[i];
+		const char *name = e->name;
+
 		i = check_one_conflict(r->index, i, &conflict_type);
-		if (conflict_type == THREE_STAGED)
-			string_list_insert(conflict, (const char *)e->name);
+		if (conflict_type != RERERE_PUNTED) {
+			struct string_list_item *item =
+				string_list_insert(conflict, name);
+			item->util = conflict_type;
+		}
 	}
 	return 0;
 }
@@ -582,12 +589,12 @@ int rerere_remaining(struct repository *r, struct string_list *merge_rr)
 		return error(_("index file corrupt"));
 
 	for (i = 0; i < r->index->cache_nr;) {
-		int conflict_type;
+		void *conflict_type;
 		const struct cache_entry *e = r->index->cache[i];
 		i = check_one_conflict(r->index, i, &conflict_type);
-		if (conflict_type == PUNTED)
+		if (conflict_type == RERERE_PUNTED)
 			string_list_insert(merge_rr, (const char *)e->name);
-		else if (conflict_type == RESOLVED) {
+		else if (conflict_type == RERERE_RESOLVED) {
 			struct string_list_item *it;
 			it = string_list_lookup(merge_rr, (const char *)e->name);
 			if (it) {
