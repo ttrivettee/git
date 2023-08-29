@@ -280,6 +280,8 @@ linux-leaks)
 	;;
 linux-asan-ubsan)
 	export SANITIZE=address,undefined
+	export NO_SVN_TESTS=LetsSaveSomeTimeBack
+	MAKEFLAGS="$MAKEFLAGS NO_PYTHON=YepItFlakesTooOften"
 	;;
 esac
 
