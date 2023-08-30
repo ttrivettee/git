@@ -132,18 +132,18 @@ test_expect_success 'create a few commits' '
 	rm commit_id up final
 '
 
-test_expect_failure 'git read-tree does not segfault' '
+test_expect_success 'git read-tree does not segfault' '
 	test_when_finished rm .git/index.lock &&
 	test_might_fail git read-tree --reset base
 '
 
-test_expect_failure 'reset --hard does not segfault' '
+test_expect_success 'reset --hard does not segfault' '
 	test_when_finished rm .git/index.lock &&
 	git checkout base &&
 	test_might_fail git reset --hard
 '
 
-test_expect_failure 'git diff HEAD does not segfault' '
+test_expect_success 'git diff HEAD does not segfault' '
 	git checkout base &&
 	GIT_TEST_CHECK_CACHE_TREE=false &&
 	git reset --hard &&
