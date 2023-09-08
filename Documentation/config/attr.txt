@@ -1,0 +1,6 @@
+attr.allowInvalidSource::
+	If `--attr-source` cannot resolve to a valid tree object, ignore
+	`--attr-source` instead of erroring out, and fall back to looking for
+	attributes in the default locations. Useful when passing `HEAD` into
+	`attr-source` since it allows `HEAD` to point to an unborn branch in
+	cases like an empty repository.

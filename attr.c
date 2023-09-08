@@ -1208,8 +1208,15 @@ static void compute_default_attr_source(struct object_id *attr_source)
 	if (!default_attr_source_tree_object_name || !is_null_oid(attr_source))
 		return;
 
-	if (repo_get_oid_treeish(the_repository, default_attr_source_tree_object_name, attr_source))
-		die(_("bad --attr-source or GIT_ATTR_SOURCE"));
+
+	if (repo_get_oid_treeish(the_repository, default_attr_source_tree_object_name, attr_source)) {
+		int allow_invalid_attr_source = 0;
+
+		git_config_get_bool("attr.allowinvalidsource", &allow_invalid_attr_source);
+
+		if (!allow_invalid_attr_source)
+			die(_("bad --attr-source or GIT_ATTR_SOURCE"));
+	}
 }
 
 static struct object_id *default_attr_source(void)
