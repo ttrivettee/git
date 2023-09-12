@@ -4083,6 +4083,9 @@ int diff_populate_filespec(struct repository *r,
 	int check_binary = options ? options->check_binary : 0;
 	int err = 0;
 	int conv_flags = global_conv_flags_eol;
+#ifdef __MVS__
+	int autocvtToASCII;
+#endif
 	/*
 	 * demote FAIL to WARN to allow inspecting the situation
 	 * instead of refusing.
@@ -4155,9 +4158,17 @@ int diff_populate_filespec(struct repository *r,
 			s->is_binary = 1;
 			return 0;
 		}
+#ifdef __MVS__
+    validate_codeset(r->index, s->path, &autocvtToASCII);
+#endif
 		fd = open(s->path, O_RDONLY);
 		if (fd < 0)
 			goto err_empty;
+
+#ifdef __MVS__
+    if (!autocvtToASCII)
+      __disableautocvt(fd);
+#endif
 		s->data = xmmap(NULL, s->size, PROT_READ, MAP_PRIVATE, fd, 0);
 		close(fd);
 		s->should_munmap = 1;

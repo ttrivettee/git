@@ -377,12 +377,15 @@ static int check_roundtrip(const char *enc_name)
 static const char *default_encoding = "UTF-8";
 
 static int encode_to_git(const char *path, const char *src, size_t src_len,
-			 struct strbuf *buf, const char *enc, int conv_flags)
+			 struct strbuf *buf, const char *enc, enum convert_crlf_action attr_action, int conv_flags)
 {
 	char *dst;
 	size_t dst_len;
 	int die_on_error = conv_flags & CONV_WRITE_OBJECT;
 
+  if (attr_action == CRLF_BINARY) {
+    return 0;
+  }
 	/*
 	 * No encoding is specified or there is nothing to encode.
 	 * Tell the caller that the content was not modified.
@@ -403,6 +406,11 @@ static int encode_to_git(const char *path, const char *src, size_t src_len,
 		return 0;
 
 	trace_encoding("source", path, enc, src, src_len);
+#ifdef __MVS__
+  // Don't convert ISO8859-1 on z/OS
+  if (strcasecmp("ISO8859-1", enc) == 0)
+    return 0;
+#endif
 	dst = reencode_string_len(src, src_len, default_encoding, enc,
 				  &dst_len);
 	if (!dst) {
@@ -468,11 +476,14 @@ static int encode_to_git(const char *path, const char *src, size_t src_len,
 }
 
 static int encode_to_worktree(const char *path, const char *src, size_t src_len,
-			      struct strbuf *buf, const char *enc)
+			      struct strbuf *buf, enum convert_crlf_action attr_action, const char *enc)
 {
 	char *dst;
 	size_t dst_len;
 
+  if (attr_action == CRLF_BINARY) {
+    return 0;
+  }
 	/*
 	 * No encoding is specified or there is nothing to encode.
 	 * Tell the caller that the content was not modified.
@@ -1302,18 +1313,37 @@ static int git_path_check_ident(struct attr_check_item *check)
 
 static struct attr_check *check;
 
+static const char* get_platform() {
+	struct utsname uname_info;
+
+	if (uname(&uname_info))
+		die(_("uname() failed with error '%s' (%d)\n"),
+			    strerror(errno),
+			    errno);
+
+  if (!strcmp(uname_info.sysname, "OS/390"))
+    return "zos";
+  return uname_info.sysname;
+}
+
+
 void convert_attrs(struct index_state *istate,
 		   struct conv_attrs *ca, const char *path)
 {
 	struct attr_check_item *ccheck = NULL;
+  struct strbuf platform_working_tree_encoding = STRBUF_INIT;
+
+	strbuf_addf(&platform_working_tree_encoding, "%s-working-tree-encoding", get_platform());
+
 
 	if (!check) {
 		check = attr_check_initl("crlf", "ident", "filter",
-					 "eol", "text", "working-tree-encoding",
+					 "eol", "text", "working-tree-encoding", platform_working_tree_encoding.buf,
 					 NULL);
 		user_convert_tail = &user_convert;
 		git_config(read_convert_config, NULL);
 	}
+	strbuf_release(&platform_working_tree_encoding);
 
 	git_check_attr(istate, path, check);
 	ccheck = check->items;
@@ -1334,6 +1364,8 @@ void convert_attrs(struct index_state *istate,
 			ca->crlf_action = CRLF_TEXT_CRLF;
 	}
 	ca->working_tree_encoding = git_path_check_encoding(ccheck + 5);
+  if (git_path_check_encoding(ccheck + 6))
+    ca->working_tree_encoding = git_path_check_encoding(ccheck + 6);
 
 	/* Save attr and make a decision for action */
 	ca->attr_action = ca->crlf_action;
@@ -1427,7 +1459,7 @@ int convert_to_git(struct index_state *istate,
 		len = dst->len;
 	}
 
-	ret |= encode_to_git(path, src, len, dst, ca.working_tree_encoding, conv_flags);
+	ret |= encode_to_git(path, src, len, dst, ca.working_tree_encoding, ca.attr_action, conv_flags);
 	if (ret && dst) {
 		src = dst->buf;
 		len = dst->len;
@@ -1455,7 +1487,7 @@ void convert_to_git_filter_fd(struct index_state *istate,
 	if (!apply_filter(path, NULL, 0, fd, dst, ca.drv, CAP_CLEAN, NULL, NULL))
 		die(_("%s: clean filter '%s' failed"), path, ca.drv->name);
 
-	encode_to_git(path, dst->buf, dst->len, dst, ca.working_tree_encoding, conv_flags);
+	encode_to_git(path, dst->buf, dst->len, dst, ca.working_tree_encoding, ca.attr_action, conv_flags);
 	crlf_to_git(istate, path, dst->buf, dst->len, dst, ca.crlf_action, conv_flags);
 	ident_to_git(dst->buf, dst->len, dst, ca.ident);
 }
@@ -1487,7 +1519,7 @@ static int convert_to_working_tree_ca_internal(const struct conv_attrs *ca,
 		}
 	}
 
-	ret |= encode_to_worktree(path, src, len, dst, ca->working_tree_encoding);
+	ret |= encode_to_worktree(path, src, len, dst, ca->attr_action, ca->working_tree_encoding);
 	if (ret) {
 		src = dst->buf;
 		len = dst->len;

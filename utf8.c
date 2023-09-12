@@ -590,6 +590,17 @@ char *reencode_string_len(const char *in, size_t insz,
 #endif
 	}
 
+#ifdef __MVS__
+  //HACK: For backwards compat, ISO8859-1 really means utf-8 in the z/OS world
+  if (strcasecmp("ISO8859-1", in_encoding) == 0) {
+    in_encoding = "UTF-8";
+    out_encoding = "UTF-8";
+  }
+  if (strcasecmp("ISO8859-1", out_encoding) == 0) {
+    in_encoding = "UTF-8";
+    out_encoding = "UTF-8";
+  }
+#endif
 	conv = iconv_open(out_encoding, in_encoding);
 	if (conv == (iconv_t) -1) {
 		in_encoding = fallback_encoding(in_encoding);

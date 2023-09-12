@@ -1521,6 +1521,13 @@ static int git_default_core_config(const char *var, const char *value,
 		return 0;
 	}
 
+	#ifdef __MVS__
+	if (!strcmp(var, "core.ignorefiletags")) {
+		ignore_file_tags = git_config_bool(var, value);
+		return 0;
+	}
+	#endif
+
 	if (!strcmp(var, "core.safecrlf")) {
 		int eol_rndtrp_die;
 		if (value && !strcasecmp(value, "warn")) {

@@ -20,6 +20,8 @@ include shared.mak
 #
 # Define SHELL_PATH to a POSIX shell if your /bin/sh is broken.
 #
+# Define SHELL_PATH_FOR_SCRIPTS to a POSIX shell if your /bin/sh is broken.
+#
 # Define SANE_TOOL_PATH to a colon-separated list of paths to prepend
 # to PATH if your tools in /usr/bin are broken.
 #
@@ -214,6 +216,8 @@ include shared.mak
 # Extensions Lab if you have it available.
 #
 # Define PERL_PATH to the path of your Perl binary (usually /usr/bin/perl).
+#
+# Define PERL_PATH_FOR_SCRIPTS to a Perl binary if your /usr/bin/perl is broken.
 #
 # Define NO_PERL if you do not want Perl scripts or libraries at all.
 #
@@ -903,8 +907,14 @@ BINDIR_PROGRAMS_NO_X += git-cvsserver
 ifndef SHELL_PATH
 	SHELL_PATH = /bin/sh
 endif
+ifndef SHELL_PATH_FOR_SCRIPTS
+	SHELL_PATH_FOR_SCRIPTS = /bin/sh
+endif
 ifndef PERL_PATH
 	PERL_PATH = /usr/bin/perl
+endif
+ifndef PERL_PATH_FOR_SCRIPTS
+	PERL_PATH_FOR_SCRIPTS = /usr/bin/perl
 endif
 ifndef PYTHON_PATH
 	PYTHON_PATH = /usr/bin/python
@@ -1336,7 +1346,7 @@ THIRD_PARTY_SOURCES += sha1dc/%
 
 # xdiff and reftable libs may in turn depend on what is in libgit.a
 GITLIBS = common-main.o $(LIB_FILE) $(XDIFF_LIB) $(REFTABLE_LIB) $(LIB_FILE)
-EXTLIBS =
+EXTLIBS = $(ZOPEN_EXTRA_LIBS)
 
 GIT_USER_AGENT = git/$(GIT_VERSION)
 
@@ -2226,9 +2236,10 @@ perllibdir_relative_SQ = $(subst ','\'',$(perllibdir_relative))
 gitwebdir_SQ = $(subst ','\'',$(gitwebdir))
 gitwebstaticdir_SQ = $(subst ','\'',$(gitwebstaticdir))
 
-SHELL_PATH_SQ = $(subst ','\'',$(SHELL_PATH))
+SHELL_PATH_SQ = $(subst ','\'',$(SHELL_PATH_FOR_SCRIPTS))
 TEST_SHELL_PATH_SQ = $(subst ','\'',$(TEST_SHELL_PATH))
 PERL_PATH_SQ = $(subst ','\'',$(PERL_PATH))
+PERL_PATH_FOR_SCRIPTS_SQ = $(subst ','\'',$(PERL_PATH_FOR_SCRIPTS))
 PYTHON_PATH_SQ = $(subst ','\'',$(PYTHON_PATH))
 TCLTK_PATH_SQ = $(subst ','\'',$(TCLTK_PATH))
 DIFF_SQ = $(subst ','\'',$(DIFF))
@@ -2448,7 +2459,7 @@ hook-list.h: generate-hooklist.sh Documentation/githooks.txt
 
 SCRIPT_DEFINES = $(SHELL_PATH_SQ):$(DIFF_SQ):\
 	$(localedir_SQ):$(USE_GETTEXT_SCHEME):$(SANE_TOOL_PATH_SQ):\
-	$(gitwebdir_SQ):$(PERL_PATH_SQ):$(PAGER_ENV):\
+	$(gitwebdir_SQ):$(PERL_PATH_FOR_SCRIPTS_SQ):$(PAGER_ENV):\
 	$(perllibdir_SQ)
 GIT-SCRIPT-DEFINES: FORCE
 	@FLAGS='$(SCRIPT_DEFINES)'; \
@@ -2465,7 +2476,7 @@ sed -e '1s|#!.*/sh|#!$(SHELL_PATH_SQ)|' \
     -e 's/@@USE_GETTEXT_SCHEME@@/$(USE_GETTEXT_SCHEME)/g' \
     -e $(BROKEN_PATH_FIX) \
     -e 's|@@GITWEBDIR@@|$(gitwebdir_SQ)|g' \
-    -e 's|@@PERL@@|$(PERL_PATH_SQ)|g' \
+    -e 's|@@PERL@@|$(PERL_PATH_FOR_SCRIPTS_SQ)|g' \
     -e 's|@@PAGER_ENV@@|$(PAGER_ENV_SQ)|g' \
     $@.sh >$@+
 endef
@@ -2519,7 +2530,7 @@ PERL_DEFINES += $(gitexecdir) $(perllibdir) $(localedir)
 $(SCRIPT_PERL_GEN): % : %.perl GIT-PERL-DEFINES GIT-PERL-HEADER GIT-VERSION-FILE
 	$(QUIET_GEN) \
 	sed -e '1{' \
-	    -e '	s|#!.*perl|#!$(PERL_PATH_SQ)|' \
+	    -e '	s|#!.*perl|#!$(PERL_PATH_FOR_SCRIPTS_SQ)|' \
 	    -e '	r GIT-PERL-HEADER' \
 	    -e '	G' \
 	    -e '}' \

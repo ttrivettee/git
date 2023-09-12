@@ -250,5 +250,8 @@ int cmd_verify_pack(int argc, const char **argv, const char *prefix);
 int cmd_show_ref(int argc, const char **argv, const char *prefix);
 int cmd_pack_refs(int argc, const char **argv, const char *prefix);
 int cmd_replace(int argc, const char **argv, const char *prefix);
+#ifdef __MVS__
+  extern int setbinaryfd(int);
+#endif
 
 #endif

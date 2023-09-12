@@ -126,6 +126,24 @@ int fstat_checkout_output(int fd, const struct checkout *state, struct stat *st)
 	return 0;
 }
 
+#ifdef __MVS__
+void tag_file_as_working_tree_encoding(struct index_state *istate, char* path, int fd) {
+	struct conv_attrs ca;
+	convert_attrs(istate, &ca, path);
+  if (ca.attr_action != CRLF_BINARY) {
+    if (ca.working_tree_encoding)
+      __chgfdcodeset(fd, ca.working_tree_encoding);
+    else
+      __setfdtext(fd);
+  }
+  else {
+    __setfdbinary(fd);
+  }
+
+  __disableautocvt(fd);
+}
+#endif
+
 static int streaming_write_entry(const struct cache_entry *ce, char *path,
 				 struct stream_filter *filter,
 				 const struct checkout *state, int to_tempfile,
@@ -137,6 +155,10 @@ static int streaming_write_entry(const struct cache_entry *ce, char *path,
 	fd = open_output_fd(path, ce, to_tempfile);
 	if (fd < 0)
 		return -1;
+
+#ifdef __MVS__
+  tag_file_as_working_tree_encoding(state->istate, path, fd);
+#endif
 
 	result |= stream_blob_to_fd(fd, &ce->oid, filter, 1);
 	*fstat_done = fstat_checkout_output(fd, state, statbuf);
@@ -373,6 +395,10 @@ static int write_entry(struct cache_entry *ce, char *path, struct conv_attrs *ca
 			free(new_blob);
 			return error_errno("unable to create file %s", path);
 		}
+
+#ifdef __MVS__
+    tag_file_as_working_tree_encoding(state->istate, path, fd);
+#endif
 
 		wrote = write_in_full(fd, new_blob, size);
 		if (!to_tempfile)

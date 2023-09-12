@@ -57,11 +57,39 @@ static void hash_fd(int fd, const char *type, const char *path, unsigned flags,
 	maybe_flush_or_die(stdout, "hash to stdout");
 }
 
+#ifdef __MVS__
+#  if (__CHARSET_LIB == 1)
+#  include <stdio.h>
+#  include <stdlib.h>
+
+   int setbinaryfd(int fd)
+   {
+     attrib_t attr;
+     int rc;
+
+     memset(&attr, 0, sizeof(attr));
+     attr.att_filetagchg = 1;
+     attr.att_filetag.ft_ccsid = FT_BINARY;
+     attr.att_filetag.ft_txtflag = 0;
+
+     rc = __fchattr(fd, &attr, sizeof(attr));
+     return rc;
+   }
+#  endif
+#endif
+
+
 static void hash_object(const char *path, const char *type, const char *vpath,
 			unsigned flags, int literally)
 {
 	int fd;
 	fd = xopen(path, O_RDONLY);
+#ifdef __MVS__
+#  if (__CHARSET_LIB == 1)
+  if (setbinaryfd(fd))
+		die_errno("Cannot set to binary '%s'", path);
+#  endif
+#endif
 	hash_fd(fd, type, vpath, flags, literally);
 }
 
