@@ -1134,8 +1134,8 @@ void trailer_info_get(struct trailer_info *info, const char *str,
 {
 	size_t end_of_log_message = 0, trailer_block_start = 0;
 	struct strbuf **trailer_lines, **ptr;
-	char **trailer_strings = NULL;
-	size_t nr = 0, alloc = 0;
+	char **trailers = NULL;
+	size_t trailer_nr = 0, alloc = 0;
 	char **last = NULL;
 
 	ensure_configured();
@@ -1155,12 +1155,12 @@ void trailer_info_get(struct trailer_info *info, const char *str,
 			*last = strbuf_detach(&sb, NULL);
 			continue;
 		}
-		ALLOC_GROW(trailer_strings, nr + 1, alloc);
-		trailer_strings[nr] = strbuf_detach(*ptr, NULL);
-		last = find_separator(trailer_strings[nr], separators) >= 1
-			? &trailer_strings[nr]
+		ALLOC_GROW(trailers, trailer_nr + 1, alloc);
+		trailers[trailer_nr] = strbuf_detach(*ptr, NULL);
+		last = find_separator(trailers[trailer_nr], separators) >= 1
+			? &trailers[trailer_nr]
 			: NULL;
-		nr++;
+		trailer_nr++;
 	}
 	strbuf_list_free(trailer_lines);
 
@@ -1168,13 +1168,13 @@ void trailer_info_get(struct trailer_info *info, const char *str,
 							       trailer_block_start);
 	info->trailer_block_start = 0;
 	info->trailer_block_end = 0;
-	if (nr) {
+	if (trailer_nr) {
 		info->trailer_block_start = trailer_block_start;
 		info->trailer_block_end = end_of_log_message;
 	}
 	info->end_of_log_message = end_of_log_message;
-	info->trailers = trailer_strings;
-	info->trailer_nr = nr;
+	info->trailers = trailers;
+	info->trailer_nr = trailer_nr;
 }
 
 void trailer_info_release(struct trailer_info *info)
