@@ -18,6 +18,7 @@
 #include "quote.h"
 #include "tree.h"
 #include "config.h"
+#include "strvec.h"
 
 static int line_termination = '\n';
 
@@ -414,6 +415,7 @@ struct merge_tree_options {
 	int show_messages;
 	int name_only;
 	int use_stdin;
+	struct merge_options merge_options;
 };
 
 static int real_merge(struct merge_tree_options *o,
@@ -438,6 +440,8 @@ static int real_merge(struct merge_tree_options *o,
 				 _("not something we can merge"));
 
 	init_merge_options(&opt, the_repository);
+
+	opt.recursive_variant = o->merge_options.recursive_variant;
 
 	opt.show_rename_progress = 0;
 
@@ -513,6 +517,7 @@ static int real_merge(struct merge_tree_options *o,
 int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 {
 	struct merge_tree_options o = { .show_messages = -1 };
+	struct strvec xopts = STRVEC_INIT;
 	int expected_remaining_argc;
 	int original_argc;
 	const char *merge_base = NULL;
@@ -548,6 +553,8 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 			   &merge_base,
 			   N_("commit"),
 			   N_("specify a merge-base for the merge")),
+		OPT_STRVEC('X', "strategy-option", &xopts, N_("option=value"),
+			N_("option for selected merge strategy")),
 		OPT_END()
 	};
 
@@ -555,6 +562,10 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 	original_argc = argc - 1; /* ignoring argv[0] */
 	argc = parse_options(argc, argv, prefix, mt_options,
 			     merge_tree_usage, PARSE_OPT_STOP_AT_NON_OPTION);
+
+	for (int x = 0; x < xopts.nr; x++)
+		if (parse_merge_opt(&o.merge_options, xopts.v[x]))
+			die(_("unknown strategy option: -X%s"), xopts.v[x]);
 
 	/* Handle --stdin */
 	if (o.use_stdin) {
