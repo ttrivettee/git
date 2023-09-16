@@ -19,6 +19,8 @@
 #include "tree.h"
 #include "config.h"
 
+static const char **xopts;
+static size_t xopts_nr, xopts_alloc;
 static int line_termination = '\n';
 
 struct merge_list {
@@ -414,6 +416,7 @@ struct merge_tree_options {
 	int show_messages;
 	int name_only;
 	int use_stdin;
+	struct merge_options merge_options;
 };
 
 static int real_merge(struct merge_tree_options *o,
@@ -438,6 +441,8 @@ static int real_merge(struct merge_tree_options *o,
 				 _("not something we can merge"));
 
 	init_merge_options(&opt, the_repository);
+
+	opt.recursive_variant = o->merge_options.recursive_variant;
 
 	opt.show_rename_progress = 0;
 
@@ -510,6 +515,17 @@ static int real_merge(struct merge_tree_options *o,
 	return !result.clean; /* result.clean < 0 handled above */
 }
 
+static int option_parse_x(const struct option *opt,
+			  const char *arg, int unset)
+{
+	if (unset)
+		return 0;
+
+	ALLOC_GROW(xopts, xopts_nr + 1, xopts_alloc);
+	xopts[xopts_nr++] = xstrdup(arg);
+	return 0;
+}
+
 int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 {
 	struct merge_tree_options o = { .show_messages = -1 };
@@ -548,6 +564,10 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 			   &merge_base,
 			   N_("commit"),
 			   N_("specify a merge-base for the merge")),
+		OPT_CALLBACK('X', "strategy-option", &xopts,
+			N_("option=value"),
+			N_("option for selected merge strategy"),
+			option_parse_x),
 		OPT_END()
 	};
 
@@ -555,6 +575,10 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 	original_argc = argc - 1; /* ignoring argv[0] */
 	argc = parse_options(argc, argv, prefix, mt_options,
 			     merge_tree_usage, PARSE_OPT_STOP_AT_NON_OPTION);
+
+	for (int x = 0; x < xopts_nr; x++)
+		if (parse_merge_opt(&o.merge_options, xopts[x]))
+			die(_("unknown strategy option: -X%s"), xopts[x]);
 
 	/* Handle --stdin */
 	if (o.use_stdin) {
