@@ -1130,10 +1130,18 @@ struct ref_transaction *ref_store_transaction_begin(struct ref_store *refs,
 						    struct strbuf *err)
 {
 	struct ref_transaction *tr;
+	int ret = 0;
 	assert(err);
 
 	CALLOC_ARRAY(tr, 1);
 	tr->ref_store = refs;
+
+	if (refs->be->transaction_begin)
+		ret = refs->be->transaction_begin(refs, tr, err);
+	if (ret) {
+		free(tr);
+		return NULL;
+	}
 	return tr;
 }
 

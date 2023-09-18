@@ -1552,8 +1552,6 @@ int is_packed_transaction_needed(struct ref_store *ref_store,
 
 struct packed_transaction_backend_data {
 	/* True iff the transaction owns the packed-refs lock. */
-	int own_lock;
-
 	struct string_list updates;
 };
 
@@ -1568,9 +1566,8 @@ static void packed_transaction_cleanup(struct packed_ref_store *refs,
 		if (is_tempfile_active(refs->tempfile))
 			delete_tempfile(&refs->tempfile);
 
-		if (data->own_lock && is_lock_file_locked(&refs->lock)) {
+		if (is_lock_file_locked(&refs->lock)) {
 			packed_refs_unlock(&refs->base);
-			data->own_lock = 0;
 		}
 
 		free(data);
@@ -1578,6 +1575,28 @@ static void packed_transaction_cleanup(struct packed_ref_store *refs,
 	}
 
 	transaction->state = REF_TRANSACTION_CLOSED;
+}
+
+static int packed_transaction_begin(struct ref_store *ref_store,
+				    struct ref_transaction *transaction,
+				    struct strbuf *err)
+{
+	struct packed_ref_store *refs = packed_downcast(
+			ref_store,
+			REF_STORE_READ | REF_STORE_WRITE | REF_STORE_ODB,
+			"ref_transaction_begin");
+	struct packed_transaction_backend_data *data;
+
+	CALLOC_ARRAY(data, 1);
+	string_list_init_nodup(&data->updates);
+
+	if (!is_lock_file_locked(&refs->lock)) {
+		if (packed_refs_lock(ref_store, 0, err))
+			/* todo: leaking data */
+			return -1;
+	}
+	transaction->backend_data = data;
+	return 0;
 }
 
 static int packed_transaction_prepare(struct ref_store *ref_store,
@@ -1588,7 +1607,7 @@ static int packed_transaction_prepare(struct ref_store *ref_store,
 			ref_store,
 			REF_STORE_READ | REF_STORE_WRITE | REF_STORE_ODB,
 			"ref_transaction_prepare");
-	struct packed_transaction_backend_data *data;
+	struct packed_transaction_backend_data *data = transaction->backend_data;
 	size_t i;
 	int ret = TRANSACTION_GENERIC_ERROR;
 
@@ -1600,11 +1619,6 @@ static int packed_transaction_prepare(struct ref_store *ref_store,
 	 * caller wants to optimize away empty transactions, it should
 	 * do so itself.
 	 */
-
-	CALLOC_ARRAY(data, 1);
-	string_list_init_nodup(&data->updates);
-
-	transaction->backend_data = data;
 
 	/*
 	 * Stick the updates in a string list by refname so that we
@@ -1622,12 +1636,6 @@ static int packed_transaction_prepare(struct ref_store *ref_store,
 
 	if (ref_update_reject_duplicates(&data->updates, err))
 		goto failure;
-
-	if (!is_lock_file_locked(&refs->lock)) {
-		if (packed_refs_lock(ref_store, 0, err))
-			goto failure;
-		data->own_lock = 1;
-	}
 
 	if (write_with_updates(refs, &data->updates, err))
 		goto failure;
@@ -1758,6 +1766,7 @@ struct ref_storage_be refs_be_packed = {
 	.name = "packed",
 	.init = packed_ref_store_create,
 	.init_db = packed_init_db,
+	.transaction_begin = packed_transaction_begin,
 	.transaction_prepare = packed_transaction_prepare,
 	.transaction_finish = packed_transaction_finish,
 	.transaction_abort = packed_transaction_abort,
