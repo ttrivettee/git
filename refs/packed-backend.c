@@ -1153,7 +1153,7 @@ static int write_packed_entry(FILE *fh, const char *refname,
 	return 0;
 }
 
-int packed_refs_lock(struct ref_store *ref_store, int flags, struct strbuf *err)
+static int packed_refs_lock(struct ref_store *ref_store, int flags, struct strbuf *err)
 {
 	struct packed_ref_store *refs =
 		packed_downcast(ref_store, REF_STORE_WRITE | REF_STORE_MAIN,
@@ -1212,7 +1212,7 @@ int packed_refs_lock(struct ref_store *ref_store, int flags, struct strbuf *err)
 	return 0;
 }
 
-void packed_refs_unlock(struct ref_store *ref_store)
+static void packed_refs_unlock(struct ref_store *ref_store)
 {
 	struct packed_ref_store *refs = packed_downcast(
 			ref_store,
@@ -1222,16 +1222,6 @@ void packed_refs_unlock(struct ref_store *ref_store)
 	if (!is_lock_file_locked(&refs->lock))
 		BUG("packed_refs_unlock() called when not locked");
 	rollback_lock_file(&refs->lock);
-}
-
-int packed_refs_is_locked(struct ref_store *ref_store)
-{
-	struct packed_ref_store *refs = packed_downcast(
-			ref_store,
-			REF_STORE_READ | REF_STORE_WRITE,
-			"packed_refs_is_locked");
-
-	return is_lock_file_locked(&refs->lock);
 }
 
 /*
