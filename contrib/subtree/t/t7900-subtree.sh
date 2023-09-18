@@ -385,6 +385,48 @@ test_expect_success 'split sub dir/ with --rejoin' '
 	)
 '
 
+test_expect_success 'split with multiple subtrees' '
+	subtree_test_create_repo "$test_count" &&
+	subtree_test_create_repo "$test_count/subA" &&
+	subtree_test_create_repo "$test_count/subB" &&
+	test_create_commit "$test_count" main1 &&
+	test_create_commit "$test_count/subA" subA1 &&
+	test_create_commit "$test_count/subA" subA2 &&
+	test_create_commit "$test_count/subA" subA3 &&
+	test_create_commit "$test_count/subB" subB1 &&
+	(
+		cd "$test_count" &&
+		git fetch ./subA HEAD &&
+		git subtree add --prefix=subADir FETCH_HEAD
+	) &&
+	(
+		cd "$test_count" &&
+		git fetch ./subB HEAD &&
+		git subtree add --prefix=subBDir FETCH_HEAD
+	) &&
+	test_create_commit "$test_count" subADir/main-subA1 &&
+	test_create_commit "$test_count" subBDir/main-subB1 &&
+	(
+		cd "$test_count" &&
+		git subtree split --prefix=subADir --squash --rejoin -m "Sub A Split 1"
+	) &&
+	(
+		cd "$test_count" &&
+		git subtree split --prefix=subBDir --squash --rejoin -m "Sub B Split 1"
+	) &&
+	test_create_commit "$test_count" subADir/main-subA2 &&
+	test_create_commit "$test_count" subBDir/main-subB2 &&
+	(
+		cd "$test_count" &&
+		git subtree split --prefix=subADir --squash --rejoin -m "Sub A Split 2"
+	) &&
+	(
+		cd "$test_count" &&
+		test "$(git subtree split --prefix=subBDir --squash --rejoin \
+		 -d -m "Sub B Split 1" 2>&1 | grep -w "\[1\]")" = ""
+	)
+'
+
 test_expect_success 'split sub dir/ with --rejoin from scratch' '
 	subtree_test_create_repo "$test_count" &&
 	test_create_commit "$test_count" main1 &&
