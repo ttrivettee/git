@@ -76,7 +76,20 @@ jobs:
           echo "COVERITY_TOOL_FILENAME=$COVERITY_TOOL_FILENAME" >>$GITHUB_ENV
           echo "MAKEFLAGS=$MAKEFLAGS" >>$GITHUB_ENV
           MD5=$(curl https://scan.coverity.com/download/$COVERITY_LANGUAGE/$COVERITY_PLATFORM \
+                   -D "$RUNNER_TEMP"/headers.txt \
                    --data "token=${{ secrets.COVERITY_SCAN_TOKEN }}&project=$COVERITY_PROJECT&md5=1")
+          http_code="$(sed -n 1p <"$RUNNER_TEMP"/headers.txt)"
+          case "$http_code" in
+          *200*) ;; # okay
+          *401*) # access denied
+            echo "::error::incorrect token or project? ($http_code)" >&2
+            exit 1
+            ;;
+          *) # other error
+            echo "::error::HTTP error $http_code" >&2
+            exit 1
+            ;;
+          esac
           echo "hash=$MD5" >>$GITHUB_OUTPUT
 
       # Try to cache the tool to avoid downloading 1GB+ on every run.
