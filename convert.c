@@ -1315,15 +1315,28 @@ static struct attr_check *check;
 
 static const char* get_platform() {
 	struct utsname uname_info;
+	char *result;
+	if(!uname_info.sysname)
+	{
+		result = (char *)malloc(strlen(uname_info.sysname)+1);
+		int index=0;
+		while(index <= strlen(uname_info.sysname))
+		{
+			*result = uname_info.sysname[index];
+			++result;
+			++index;
+		}
+	}
 
 	if (uname(&uname_info))
 		die(_("uname() failed with error '%s' (%d)\n"),
 			    strerror(errno),
 			    errno);
 
-  if (!strcmp(uname_info.sysname, "OS/390"))
-    return "zos";
-  return uname_info.sysname;
+	if (!strcmp(uname_info.sysname, "OS/390"))
+		result="zos";
+
+	return result;
 }
 
 
@@ -1331,10 +1344,9 @@ void convert_attrs(struct index_state *istate,
 		   struct conv_attrs *ca, const char *path)
 {
 	struct attr_check_item *ccheck = NULL;
-  struct strbuf platform_working_tree_encoding = STRBUF_INIT;
+	struct strbuf platform_working_tree_encoding = STRBUF_INIT;
 
 	strbuf_addf(&platform_working_tree_encoding, "%s-working-tree-encoding", get_platform());
-
 
 	if (!check) {
 		check = attr_check_initl("crlf", "ident", "filter",

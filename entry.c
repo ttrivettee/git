@@ -130,17 +130,17 @@ int fstat_checkout_output(int fd, const struct checkout *state, struct stat *st)
 void tag_file_as_working_tree_encoding(struct index_state *istate, char* path, int fd) {
 	struct conv_attrs ca;
 	convert_attrs(istate, &ca, path);
-  if (ca.attr_action != CRLF_BINARY) {
-    if (ca.working_tree_encoding)
-      __chgfdcodeset(fd, ca.working_tree_encoding);
-    else
-      __setfdtext(fd);
-  }
-  else {
-    __setfdbinary(fd);
-  }
+	if (ca.attr_action != CRLF_BINARY) {
+		if (ca.working_tree_encoding)
+			__chgfdcodeset(fd, ca.working_tree_encoding);
+		else
+			__setfdtext(fd);
+	}
+	else {
+		__setfdbinary(fd);
+	}
 
-  __disableautocvt(fd);
+	__disableautocvt(fd);
 }
 #endif
 

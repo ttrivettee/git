@@ -62,8 +62,8 @@ static void hash_fd(int fd, const char *type, const char *path, unsigned flags,
 #  include <stdio.h>
 #  include <stdlib.h>
 
-   int setbinaryfd(int fd)
-   {
+int setbinaryfd(int fd)
+{
      attrib_t attr;
      int rc;
 
@@ -74,7 +74,7 @@ static void hash_fd(int fd, const char *type, const char *path, unsigned flags,
 
      rc = __fchattr(fd, &attr, sizeof(attr));
      return rc;
-   }
+}
 #  endif
 #endif
 

@@ -2557,15 +2557,15 @@ int index_path(struct index_state *istate, struct object_id *oid,
 	switch (st->st_mode & S_IFMT) {
 	case S_IFREG:
 #ifdef __MVS__
-    validate_codeset(istate, path, &autocvtToASCII);
+	validate_codeset(istate, path, &autocvtToASCII);
 #endif
 		fd = open(path, O_RDONLY);
 		if (fd < 0)
 			return error_errno("open(\"%s\")", path);
 
 #ifdef __MVS__
-   if (!autocvtToASCII)
-     __disableautocvt(fd);
+	if (!autocvtToASCII)
+		__disableautocvt(fd);
 #endif
 
 		if (index_fd(istate, oid, fd, st, OBJ_BLOB, path, flags) < 0)
