@@ -1314,7 +1314,7 @@ static int git_path_check_ident(struct attr_check_item *check)
 static struct attr_check *check;
 
 static const char* get_platform(void) {
-	struct utsname uname_info;
+	struct utsname uname_info = {0};
 	char *result = NULL;
 	if(!uname_info.sysname[0])
 	{
