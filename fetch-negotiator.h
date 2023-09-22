@@ -47,7 +47,7 @@ struct fetch_negotiator {
 	 */
 	int (*ack)(struct fetch_negotiator *, struct commit *);
 
-	void (*release)(struct fetch_negotiator *);
+	void (*release_negotiator)(struct fetch_negotiator *);
 
 	/* internal use */
 	void *data;

@@ -1313,13 +1313,13 @@ static int git_path_check_ident(struct attr_check_item *check)
 
 static struct attr_check *check;
 
-static const char* get_platform() {
+static const char* get_platform(void) {
 	struct utsname uname_info;
 	char *result;
 	if(!uname_info.sysname)
 	{
-		result = (char *)malloc(strlen(uname_info.sysname)+1);
 		int index=0;
+		result = (char *)malloc(strlen(uname_info.sysname)+1);
 		while(index <= strlen(uname_info.sysname))
 		{
 			*result = uname_info.sysname[index];
