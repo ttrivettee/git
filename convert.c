@@ -1326,7 +1326,13 @@ static const char* get_platform(void) {
 	{
 		int index=0;
 		result = (char *)malloc(strlen(uname_info.sysname)+1);
-		strncpy(result, uname_info.sysname, strlen(uname_info.sysname));
+		while(index <= strlen(uname_info.sysname))
+		{
+			*result = uname_info.sysname[index];
+			++result;
+			++index;
+		}
+		*result = '\0';
 	}
 #endif
 
