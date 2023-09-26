@@ -1321,19 +1321,14 @@ static const char* get_platform(void) {
 		die(_("uname() failed with error '%s' (%d)\n"),
 			strerror(errno),
 			errno);
-
+#ifndef __MVS__
 	if(*uname_info.sysname != '\0')
 	{
 		int index=0;
 		result = (char *)malloc(strlen(uname_info.sysname)+1);
-		while(index <= strlen(uname_info.sysname))
-		{
-			*result = uname_info.sysname[index];
-			++result;
-			++index;
-		}
-		*result = '\0';
+		strncpy(result, uname_info.sysname, strlen(uname_info.sysname));
 	}
+#endif
 
 #ifdef __MVS__
 	if (!strcmp(uname_info.sysname, "OS/390"))
