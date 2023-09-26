@@ -1314,9 +1314,15 @@ static int git_path_check_ident(struct attr_check_item *check)
 static struct attr_check *check;
 
 static const char* get_platform(void) {
-	struct utsname uname_info = {0};
+	struct utsname uname_info;
 	char *result = NULL;
-	if(!uname_info.sysname[0])
+
+	if (uname(&uname_info) < 0)
+		die(_("uname() failed with error '%s' (%d)\n"),
+			strerror(errno),
+			errno);
+
+	if(*uname_info.sysname != '\0')
 	{
 		int index=0;
 		result = (char *)malloc(strlen(uname_info.sysname)+1);
@@ -1326,15 +1332,13 @@ static const char* get_platform(void) {
 			++result;
 			++index;
 		}
+		*result = '\0';
 	}
 
-	if (uname(&uname_info))
-		die(_("uname() failed with error '%s' (%d)\n"),
-			    strerror(errno),
-			    errno);
-
+#ifdef __MVS__
 	if (!strcmp(uname_info.sysname, "OS/390"))
 		result="zos";
+#endif
 
 	return result;
 }
