@@ -1326,13 +1326,10 @@ static const char* get_platform(void) {
 	{
 		int index=0;
 		result = (char *)malloc(strlen(uname_info.sysname)+1);
-		while(index <= strlen(uname_info.sysname))
+		while(result[index] = uname_info.sysname[index])
 		{
-			*result = uname_info.sysname[index];
-			++result;
-			++index;
+			index++;
 		}
-		*result = '\0';
 	}
 #endif
 
@@ -1340,8 +1337,7 @@ static const char* get_platform(void) {
 	if (!strcmp(uname_info.sysname, "OS/390"))
 		result="zos";
 #endif
-
-	return result;
+	return (char*)result;
 }
 
 
