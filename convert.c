@@ -1326,8 +1326,9 @@ static const char* get_platform(void) {
 	{
 		int index=0;
 		result = (char *)malloc(strlen(uname_info.sysname)+1);
-		while(result[index] = uname_info.sysname[index])
+		while(index <= strlen(uname_info.sysname))
 		{
+			result[index] = uname_info.sysname[index];
 			index++;
 		}
 	}
