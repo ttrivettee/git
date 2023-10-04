@@ -86,6 +86,26 @@ EXPECTED
 	test_cmp expected actual
 '
 
+test_expect_success '3-way merge with --attr-source' '
+	test_when_finished rm -rf 3-way &&
+	git init 3-way &&
+	(
+		cd 3-way &&
+		test_commit initial file1 foo &&
+		base=$(git rev-parse HEAD) &&
+		git checkout -b brancha &&
+		echo bar>>file1 &&
+		git commit -am "adding bar" &&
+		source=$(git rev-parse HEAD) &&
+		echo baz>>file1 &&
+		git commit -am "adding baz" &&
+		merge=$(git rev-parse HEAD) &&
+		test_must_fail git --attr-source=HEAD merge-tree -z --write-tree \
+		--merge-base "$base" --end-of-options "$source" "$merge" >out &&
+		grep "Merge conflict in file1" out
+	)
+'
+
 test_expect_success 'file change A, B (same)' '
 	git reset --hard initial &&
 	test_commit "change-a-b-same-A" "initial-file" "AAA" &&
