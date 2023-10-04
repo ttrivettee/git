@@ -1313,9 +1313,9 @@ static int git_path_check_ident(struct attr_check_item *check)
 
 static struct attr_check *check;
 
-static const char* get_platform(void) {
+static void get_platform(char** result) {
 	struct utsname uname_info;
-	char *result = NULL;
+	*result = NULL;
 
 	if (uname(&uname_info) < 0)
 		die(_("uname() failed with error '%s' (%d)\n"),
@@ -1325,10 +1325,10 @@ static const char* get_platform(void) {
 	if(*uname_info.sysname != '\0')
 	{
 		int index=0;
-		result = (char *)malloc(strlen(uname_info.sysname)+1);
+		*result = (char *)malloc(strlen(uname_info.sysname)+1);
 		while(index <= strlen(uname_info.sysname))
 		{
-			result[index] = uname_info.sysname[index];
+			(*result)[index] = uname_info.sysname[index];
 			index++;
 		}
 	}
@@ -1336,9 +1336,8 @@ static const char* get_platform(void) {
 
 #ifdef __MVS__
 	if (!strcmp(uname_info.sysname, "OS/390"))
-		result="zos";
+		*result = "zos";
 #endif
-	return (char*)result;
 }
 
 
@@ -1347,8 +1346,11 @@ void convert_attrs(struct index_state *istate,
 {
 	struct attr_check_item *ccheck = NULL;
 	struct strbuf platform_working_tree_encoding = STRBUF_INIT;
-
-	strbuf_addf(&platform_working_tree_encoding, "%s-working-tree-encoding", get_platform());
+	char* result=NULL;
+	get_platform(&result);
+	strbuf_addf(&platform_working_tree_encoding, "%s-working-tree-encoding", result);
+	if (result != NULL)
+		free (result);
 
 	if (!check) {
 		check = attr_check_initl("crlf", "ident", "filter",
