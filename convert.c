@@ -1315,7 +1315,6 @@ static struct attr_check *check;
 
 static void get_platform(char** result) {
 	struct utsname uname_info;
-	*result = NULL;
 
 	if (uname(&uname_info) < 0)
 		die(_("uname() failed with error '%s' (%d)\n"),
@@ -1346,11 +1345,10 @@ void convert_attrs(struct index_state *istate,
 {
 	struct attr_check_item *ccheck = NULL;
 	struct strbuf platform_working_tree_encoding = STRBUF_INIT;
-	char* result=NULL;
+	char* result="Unknown";
 	get_platform(&result);
 	strbuf_addf(&platform_working_tree_encoding, "%s-working-tree-encoding", result);
-	if (result != NULL)
-		free (result);
+	free (result);
 
 	if (!check) {
 		check = attr_check_initl("crlf", "ident", "filter",
