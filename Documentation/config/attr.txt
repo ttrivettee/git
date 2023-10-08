@@ -1,0 +1,5 @@
+attr.tree:
+	A <tree-ish> to read gitattributes from instead of the worktree. See
+	linkgit:gitattributes[5]. If `attr.tree` does not resolve to a valid tree,
+	treat it as an empty tree. --attr-source and GIT_ATTR_SOURCE take
+	precedence over attr.tree.
