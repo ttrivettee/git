@@ -26,7 +26,7 @@ on the subcommand:
  git bisect (visualize|view)
  git bisect replay <logfile>
  git bisect log
- git bisect run <cmd>...
+ git bisect run <cmd> [<arg>...]
  git bisect help
 
 This command uses a binary search algorithm to find which commit in
