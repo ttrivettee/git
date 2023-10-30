@@ -1112,6 +1112,9 @@ test_must_fail () {
 		return 1
 	elif test $exit_code -eq 127
 	then
+		# Work-around for MSVC-compiled executables
+		case "$CMAKE_C_COMPILER" in *MSVC*) return 0;; esac
+
 		echo >&4 "test_must_fail: command not found: $*"
 		return 1
 	elif test $exit_code -eq 126
