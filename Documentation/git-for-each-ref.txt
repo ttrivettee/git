@@ -11,6 +11,7 @@ SYNOPSIS
 'git for-each-ref' [--count=<count>] [--shell|--perl|--python|--tcl]
 		   [(--sort=<key>)...] [--format=<format>]
 		   [ --stdin | <pattern>... ]
+		   [--full-deref]
 		   [--points-at=<object>]
 		   [--merged[=<object>]] [--no-merged[=<object>]]
 		   [--contains[=<object>]] [--no-contains[=<object>]]
@@ -76,6 +77,14 @@ OPTIONS
 	placeholders are quoted as string literals suitable for
 	the specified host language.  This is meant to produce
 	a scriptlet that can directly be `eval`ed.
+
+--full-deref::
+	Populate dereferenced format fields (indicated with an asterisk (`*`)
+	prefix before the fieldname) with information about the fully-peeled
+	target object of a tag ref, rather than its immediate target object.
+	This only affects the output for nested annotated tags, where the tag's
+	immediate target is another tag but its fully-peeled target is another
+	object type (e.g. a commit).
 
 --points-at=<object>::
 	Only list refs which points at the given object.

@@ -92,6 +92,7 @@ struct ref_format {
 	const char *rest;
 	int quote_style;
 	int use_color;
+	int full_deref;
 
 	/* Internal state to ref-filter */
 	int need_color_reset_at_eol;

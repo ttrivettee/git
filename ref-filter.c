@@ -237,7 +237,14 @@ static struct used_atom {
 		char *head;
 	} u;
 } *used_atom;
-static int used_atom_cnt, need_tagged, need_symref;
+static int used_atom_cnt, need_symref;
+
+enum tag_dereference_mode {
+	NO_DEREF = 0,
+	DEREF_ONE,
+	DEREF_ALL
+};
+static enum tag_dereference_mode need_tagged;
 
 /*
  * Expand string, append it to strbuf *sb, then return error code ret.
@@ -1066,8 +1073,8 @@ static int parse_ref_filter_atom(struct ref_format *format,
 	memset(&used_atom[at].u, 0, sizeof(used_atom[at].u));
 	if (valid_atom[i].parser && valid_atom[i].parser(format, &used_atom[at], arg, err))
 		return -1;
-	if (*atom == '*')
-		need_tagged = 1;
+	if (*atom == '*' && !need_tagged)
+		need_tagged = format->full_deref ? DEREF_ALL : DEREF_ONE;
 	if (i == ATOM_SYMREF)
 		need_symref = 1;
 	return at;
@@ -2511,14 +2518,13 @@ static int populate_value(struct ref_array_item *ref, struct strbuf *err)
 	 * If it is a tag object, see if we use a value that derefs
 	 * the object, and if we do grab the object it refers to.
 	 */
-	oi_deref.oid = *get_tagged_oid((struct tag *)obj);
+	if (need_tagged == DEREF_ALL) {
+		if (peel_iterated_oid(&obj->oid, &oi_deref.oid))
+			die("bad tag");
+	} else {
+		oi_deref.oid = *get_tagged_oid((struct tag *)obj);
+	}
 
-	/*
-	 * NEEDSWORK: This derefs tag only once, which
-	 * is good to deal with chains of trust, but
-	 * is not consistent with what deref_tag() does
-	 * which peels the onion to the core.
-	 */
 	return get_object(ref, 1, &obj, &oi_deref, err);
 }
 
