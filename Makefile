@@ -752,6 +752,7 @@ ETAGS_TARGET = TAGS
 FUZZ_OBJS += oss-fuzz/fuzz-commit-graph.o
 FUZZ_OBJS += oss-fuzz/fuzz-pack-headers.o
 FUZZ_OBJS += oss-fuzz/fuzz-pack-idx.o
+FUZZ_OBJS += oss-fuzz/fuzz-date.o
 .PHONY: fuzz-objs
 fuzz-objs: $(FUZZ_OBJS)
 
