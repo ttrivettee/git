@@ -522,4 +522,9 @@ test_expect_success 'refs/worktree must not be packed' '
 	test_path_is_file .git/worktrees/wt2/refs/worktree/foo
 '
 
+test_expect_success SYMLINKS 'ref resolution not confused by broken symlinks' '
+       ln -s does-not-exist .git/refs/heads/broken &&
+       test_must_fail git rev-parse --verify broken
+'
+
 test_done
