@@ -527,4 +527,31 @@ test_expect_success SYMLINKS 'ref resolution not confused by broken symlinks' '
        test_must_fail git rev-parse --verify broken
 '
 
+test_expect_success 'drop stash reflog updates refs/stash with rewrite' '
+	git init repo &&
+	(
+		cd repo &&
+		setup_stash
+	) &&
+	echo 9 >repo/file &&
+
+	old_oid="$(git -C repo rev-parse stash@{0})" &&
+	git -C repo stash &&
+	new_oid="$(git -C repo rev-parse stash@{0})" &&
+
+	cat >expect <<-EOF &&
+	$(test_oid zero) $old_oid
+	$old_oid $new_oid
+	EOF
+	cut -d" " -f1-2 repo/.git/logs/refs/stash >actual &&
+	test_cmp expect actual &&
+
+	git -C repo stash drop stash@{1} &&
+	cut -d" " -f1-2 repo/.git/logs/refs/stash >actual &&
+	cat >expect <<-EOF &&
+	$(test_oid zero) $new_oid
+	EOF
+	test_cmp expect actual
+'
+
 test_done

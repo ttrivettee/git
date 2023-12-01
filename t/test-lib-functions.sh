@@ -1958,3 +1958,19 @@ test_trailing_hash () {
 		test-tool hexdump |
 		sed "s/ //g"
 }
+
+# Stash some changes
+setup_stash() { echo 1 >file &&
+	git add file &&
+	echo unrelated >other-file &&
+	git add other-file &&
+	test_tick &&
+	git commit -m initial &&
+	echo 2 >file &&
+	git add file &&
+	echo 3 >file &&
+	test_tick &&
+	git stash &&
+	git diff-files --quiet &&
+	git diff-index --cached --quiet HEAD
+}
