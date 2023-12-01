@@ -92,6 +92,14 @@ test_expect_success 'setup' '
 	E=$(git rev-parse HEAD)
 '
 
+test_expect_success 'pack_refs(PACK_REFS_ALL | PACK_REFS_PRUNE)' '
+	N=`find .git/refs -type f | wc -l` &&
+	test "$N" != 0 &&
+	test-tool ref-store main pack-refs PACK_REFS_PRUNE,PACK_REFS_ALL &&
+	N=`find .git/refs -type f` &&
+	test -z "$N"
+'
+
 test_expect_success 'empty directory should not fool rev-parse' '
 	prefix=refs/e-rev-parse &&
 	git update-ref $prefix/foo $C &&
