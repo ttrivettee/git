@@ -3778,8 +3778,11 @@ static int check_preimage(struct apply_state *state,
 		return error_errno("%s", old_name);
 	}
 
-	if (!state->cached && !previous)
-		st_mode = ce_mode_from_stat(*ce, st->st_mode);
+	if (!state->cached && !previous) {
+		if (!trust_executable_bit && patch->old_mode)
+			st_mode = patch->old_mode;
+		else st_mode = ce_mode_from_stat(*ce, st->st_mode);
+	}
 
 	if (patch->is_new < 0)
 		patch->is_new = 0;
