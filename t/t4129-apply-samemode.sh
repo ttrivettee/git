@@ -101,4 +101,29 @@ test_expect_success POSIXPERM 'do not use core.sharedRepository for working tree
 	)
 '
 
+test_expect_success 'ensure git apply respects core.fileMode' '
+	test_config core.fileMode false &&
+	echo true >script.sh &&
+	git add --chmod=+x script.sh &&
+	git ls-files -s script.sh | grep "^100755" &&
+	test_tick && git commit -m "Add script" &&
+	git ls-tree -r HEAD script.sh | grep "^100755" &&
+
+	echo true >>script.sh &&
+	test_tick && git commit -m "Modify script" script.sh &&
+	git format-patch -1 --stdout >patch &&
+	grep "index.*100755" patch &&
+
+	git switch -c branch HEAD^ &&
+	git apply --index patch 2>err &&
+	! grep "has type 100644, expected 100755" err &&
+	git restore -S script.sh && git restore script.sh &&
+
+	git apply patch 2>err &&
+	! grep "has type 100644, expected 100755" err &&
+
+	git apply --cached patch 2>err &&
+	! grep "has type 100644, expected 100755" err
+'
+
 test_done
