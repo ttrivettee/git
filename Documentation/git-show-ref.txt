@@ -16,6 +16,7 @@ SYNOPSIS
 	     [--] [<ref>...]
 'git show-ref' --exclude-existing[=<pattern>]
 'git show-ref' --exists <ref>
+'git show-ref' --unresolved <ref>
 
 DESCRIPTION
 -----------
@@ -75,6 +76,13 @@ OPTIONS
 	Check whether the given reference exists. Returns an exit code of 0 if
 	it does, 2 if it is missing, and 1 in case looking up the reference
 	failed with an error other than the reference being missing.
+
+--unresolved::
+
+	Prints out what the reference points to without resolving it. Returns
+	an exit code of 0 if it does, 2 if it is missing, and 1 in case looking
+	up the reference failed with an error other than the reference being
+	missing.
 
 --abbrev[=<n>]::
 

@@ -218,6 +218,16 @@ test_expect_success 'show-ref sub-modes are mutually exclusive' '
 	test_must_fail git show-ref --exclude-existing --exists 2>err &&
 	grep "exclude-existing" err &&
 	grep "exists" err &&
+	grep "cannot be used together" err &&
+
+	test_must_fail git show-ref --exclude-existing --unresolved 2>err &&
+	grep "exclude-existing" err &&
+	grep "unresolved" err &&
+	grep "cannot be used together" err &&
+
+	test_must_fail git show-ref --verify --unresolved 2>err &&
+	grep "verify" err &&
+	grep "unresolved" err &&
 	grep "cannot be used together" err
 '
 
@@ -284,6 +294,43 @@ test_expect_success '--exists with existing special ref' '
 	test_when_finished "rm .git/FETCH_HEAD" &&
 	git rev-parse HEAD >.git/FETCH_HEAD &&
 	git show-ref --exists FETCH_HEAD
+'
+
+test_expect_success '--unresolved with existing reference' '
+	commit_oid=$(git rev-parse refs/heads/$GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME) &&
+	cat >expect <<-EOF &&
+	ref: $commit_oid
+	EOF
+	git show-ref --unresolved refs/heads/$GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '--unresolved with symbolic ref' '
+	test_when_finished "git symbolic-ref -d SYMBOLIC_REF_A" &&
+	cat >expect <<-EOF &&
+	ref: refs/heads/$GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME
+	EOF
+	git symbolic-ref SYMBOLIC_REF_A refs/heads/$GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME &&
+	git show-ref --unresolved SYMBOLIC_REF_A >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '--unresolved with nonexistent object ID' '
+	oid=$(test_oid 002) &&
+	test-tool ref-store main update-ref msg refs/heads/missing-oid-2 $oid $ZERO_OID REF_SKIP_OID_VERIFICATION &&
+	cat >expect <<-EOF &&
+	ref: $oid
+	EOF
+	git show-ref --unresolved refs/heads/missing-oid-2 >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success '--unresolved with nonexistent reference' '
+	cat >expect <<-EOF &&
+	error: reference does not exist
+	EOF
+	test_expect_code 2 git show-ref --unresolved refs/heads/not-exist 2>err &&
+	test_cmp expect err
 '
 
 test_done
