@@ -105,10 +105,30 @@ test_expect_success LONG_REF 'we can parse long symbolic ref' '
 	test_cmp expect actual
 '
 
-test_expect_success 'symbolic-ref reports failure in exit code' '
-	test_when_finished "rm -f .git/HEAD.lock" &&
-	>.git/HEAD.lock &&
-	test_must_fail git symbolic-ref HEAD refs/heads/whatever
+test_expect_success PIPE 'symbolic-ref reports failure in exit code' '
+	mkfifo in out &&
+	(git update-ref --stdin <in >out &) &&
+
+	exec 9>in &&
+	exec 8<out &&
+	test_when_finished "exec 9>&-" &&
+	test_when_finished "exec 8<&-" &&
+
+	echo "start" >&9 &&
+	echo "start: ok" >expected &&
+	read line <&8 &&
+	echo "$line" >actual &&
+	test_cmp expected actual &&
+
+	echo "update HEAD refs/heads/foo" >&9 &&
+
+	echo "prepare" >&9 &&
+	echo "prepare: ok" >expected &&
+	read line <&8 &&
+	echo "$line" >actual &&
+	test_cmp expected actual &&
+
+	test_must_fail git symbolic-ref HEAD refs/heads/bar
 '
 
 test_expect_success 'symbolic-ref writes reflog entry' '
