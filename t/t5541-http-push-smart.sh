@@ -232,8 +232,29 @@ test_expect_success 'push --atomic fails on server-side errors' '
 	test_config -C "$d" http.receivepack true &&
 	up="$HTTPD_URL"/smart/atomic-branches.git &&
 
-	# break ref updates for other on the remote site
-	mkdir "$d/refs/heads/other.lock" &&
+	mkfifo in out &&
+	(git -C "$d" update-ref --stdin <in >out &) &&
+
+	exec 9>in &&
+	exec 8<out &&
+	test_when_finished "exec 9>&-" &&
+	test_when_finished "exec 8<&-" &&
+
+	echo "start" >&9 &&
+	echo "start: ok" >expected &&
+	read line <&8 &&
+	echo "$line" >actual &&
+	test_cmp expected actual &&
+
+	echo "update refs/heads/other refs/heads/other" >&9 &&
+
+	# Prepare reference transaction on `other` reference to lock it and thus
+	# break updates on the remote.
+	echo "prepare" >&9 &&
+	echo "prepare: ok" >expected &&
+	read line <&8 &&
+	echo "$line" >actual &&
+	test_cmp expected actual &&
 
 	# add the new commit to other
 	git branch -f other collateral &&
