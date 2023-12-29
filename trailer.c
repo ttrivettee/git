@@ -162,8 +162,8 @@ static void print_tok_val(FILE *outfile, const char *tok, const char *val)
 		fprintf(outfile, "%s%c %s\n", tok, separators[0], val);
 }
 
-void print_all(FILE *outfile, struct list_head *head,
-	       const struct process_trailer_options *opts)
+void format_trailers(FILE *outfile, struct list_head *head,
+		     const struct process_trailer_options *opts)
 {
 	struct list_head *pos;
 	struct trailer_item *item;
@@ -588,7 +588,7 @@ static int git_trailer_config(const char *conf_key, const char *value,
 	return 0;
 }
 
-void ensure_configured(void)
+void trailer_config_init(void)
 {
 	if (configured)
 		return;
@@ -1023,7 +1023,7 @@ void parse_trailers(struct trailer_info *info,
 	}
 }
 
-void free_all(struct list_head *head)
+void free_trailers(struct list_head *head)
 {
 	struct list_head *pos, *p;
 	list_for_each_safe(pos, p, head) {
@@ -1041,7 +1041,7 @@ void trailer_info_get(struct trailer_info *info, const char *str,
 	size_t nr = 0, alloc = 0;
 	char **last = NULL;
 
-	ensure_configured();
+	trailer_config_init();
 
 	end_of_log_message = find_end_of_log_message(str, opts->no_divider);
 	trailer_block_start = find_trailer_block_start(str, end_of_log_message);

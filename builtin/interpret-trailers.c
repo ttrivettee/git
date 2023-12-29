@@ -143,7 +143,7 @@ static void interpret_trailers(const char *file,
 	struct trailer_info info;
 	FILE *outfile = stdout;
 
-	ensure_configured();
+	trailer_config_init();
 
 	read_input_file(&sb, file);
 
@@ -169,9 +169,10 @@ static void interpret_trailers(const char *file,
 		process_trailers_lists(&head, &arg_head);
 	}
 
-	print_all(outfile, &head, opts);
+	/* Print trailer block. */
+	format_trailers(outfile, &head, opts);
 
-	free_all(&head);
+	free_trailers(&head);
 	trailer_info_release(&info);
 
 	/* Print the lines after the trailers as is */
