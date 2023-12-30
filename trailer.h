@@ -46,8 +46,19 @@ struct new_trailer_item {
 	enum trailer_if_missing if_missing;
 };
 
+void trailer_conf_set(enum trailer_where where,
+		      enum trailer_if_exists if_exists,
+		      enum trailer_if_missing if_missing,
+		      struct trailer_conf *conf);
+
+struct trailer_conf *new_trailer_conf(void);
 void duplicate_trailer_conf(struct trailer_conf *dst,
 			    const struct trailer_conf *src);
+
+const char *default_separators(void);
+
+void add_arg_item(char *tok, char *val, const struct trailer_conf *conf,
+		  struct list_head *arg_head);
 
 struct process_trailer_options {
 	int in_place;
@@ -92,6 +103,7 @@ void trailer_block_release(struct trailer_block *trailer_block);
 
 void trailer_config_init(void);
 void free_trailers(struct list_head *trailers);
+void new_trailers_clear(struct list_head *trailers);
 
 void format_trailers(struct list_head *head,
 		     const struct process_trailer_options *opts,
