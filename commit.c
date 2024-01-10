@@ -1743,15 +1743,9 @@ const char *find_header_mem(const char *msg, size_t len,
 	int key_len = strlen(key);
 	const char *line = msg;
 
-	/*
-	 * NEEDSWORK: It's possible for strchrnul() to scan beyond the range
-	 * given by len. However, current callers are safe because they compute
-	 * len by scanning a NUL-terminated block of memory starting at msg.
-	 * Nonetheless, it would be better to ensure the function does not look
-	 * at msg beyond the len provided by the caller.
-	 */
 	while (line && line < msg + len) {
 		const char *eol = strchrnul(line, '\n');
+		assert(eol - line <= len);
 
 		if (line == eol)
 			return NULL;
