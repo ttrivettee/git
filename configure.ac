@@ -463,6 +463,9 @@ else
             CC_LD_DYNPATH=-Wl,+b,
           else
              CC_LD_DYNPATH=
+	     if test "$(uname -s)" = "OS/390"; then
+		     CC_LD_DYNPATH=-L
+	     fi
              AC_MSG_WARN([linker does not support runtime path to dynamic libraries])
           fi
       fi
