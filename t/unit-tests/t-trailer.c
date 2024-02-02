@@ -119,7 +119,13 @@ static void run_t_trailer_iterator(void)
 			"not a trailer line\n"
 			"not a trailer line\n"
 			"Signed-off-by: x\n",
-			1
+			/*
+			 * Even though there is only really 1 real "trailer"
+			 * (Signed-off-by), we still have 4 trailer objects
+			 * because we still want to iterate through the entire
+			 * block.
+			 */
+			4
 		},
 		{
 			"with non-trailer lines (one too many) in trailer block",
