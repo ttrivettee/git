@@ -950,5 +950,15 @@ test_expect_success '--merge-base with tree OIDs' '
 	git merge-tree --merge-base=side1^^{tree} side1^{tree} side3^{tree} >with-trees &&
 	test_cmp with-commits with-trees
 '
+test_expect_success 'error out on missing tree objects' '
+	git init --bare missing-tree.git &&
+	(
+		git rev-list side3 &&
+		git rev-parse side3^:
+	) | git pack-objects missing-tree.git/objects/pack/side3-tree-is-missing &&
+	side3=$(git rev-parse side3) &&
+	test_must_fail git --git-dir=missing-tree.git merge-tree $side3^ $side3 >actual &&
+	test_must_be_empty actual
+'
 
 test_done
