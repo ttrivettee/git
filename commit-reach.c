@@ -463,11 +463,13 @@ int repo_is_descendant_of(struct repository *r,
 	} else {
 		while (with_commit) {
 			struct commit *other;
+			int ret;
 
 			other = with_commit->item;
 			with_commit = with_commit->next;
-			if (repo_in_merge_bases_many(r, other, 1, &commit))
-				return 1;
+			ret = repo_in_merge_bases_many(r, other, 1, &commit);
+			if (ret)
+				return ret;
 		}
 		return 0;
 	}
@@ -484,10 +486,10 @@ int repo_in_merge_bases_many(struct repository *r, struct commit *commit,
 	timestamp_t generation, max_generation = GENERATION_NUMBER_ZERO;
 
 	if (repo_parse_commit(r, commit))
-		return ret;
+		return -1;
 	for (i = 0; i < nr_reference; i++) {
 		if (repo_parse_commit(r, reference[i]))
-			return ret;
+			return -1;
 
 		generation = commit_graph_generation(reference[i]);
 		if (generation > max_generation)
@@ -596,6 +598,8 @@ int ref_newer(const struct object_id *new_oid, const struct object_id *old_oid)
 	commit_list_insert(old_commit, &old_commit_list);
 	ret = repo_is_descendant_of(the_repository,
 				    new_commit, old_commit_list);
+	if (ret < 0)
+		exit(128);
 	free_commit_list(old_commit_list);
 	return ret;
 }
