@@ -105,8 +105,10 @@ static struct commit_list *paint_down_to_common(struct repository *r,
 			parents = parents->next;
 			if ((p->object.flags & flags) == flags)
 				continue;
-			if (repo_parse_commit(r, p))
+			if (repo_parse_commit(r, p)) {
+				free_commit_list(result);
 				return NULL;
+			}
 			p->object.flags |= flags;
 			prio_queue_put(&queue, p);
 		}
