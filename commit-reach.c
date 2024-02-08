@@ -10,6 +10,8 @@
 #include "tag.h"
 #include "commit-reach.h"
 #include "ewah/ewok.h"
+#include "shallow.h"
+#include "promisor-remote.h"
 
 /* Remember to update object flag allocation in object.h */
 #define PARENT1		(1u<<16)
@@ -115,7 +117,9 @@ static int paint_down_to_common(struct repository *r,
 				 * dispatched with a `die()`.
 				 */
 				free_commit_list(*result);
-				if (ignore_missing_commits)
+				if (ignore_missing_commits ||
+				    is_repository_shallow(r) ||
+				    repo_has_promisor_remote(r))
 					return 0;
 				return error(_("could not parse commit %s"),
 					     oid_to_hex(&p->object.oid));
