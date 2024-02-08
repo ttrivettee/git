@@ -797,7 +797,7 @@ static void post_assign_shallow(struct shallow_info *info,
 		for (j = 0; j < bitmap_nr; j++)
 			if (bitmap[0][j]) {
 				/* Step 7, reachability test at commit level */
-				int ret = repo_in_merge_bases_many(the_repository, c, ca.nr, ca.commits);
+				int ret = repo_in_merge_bases_many(the_repository, c, ca.nr, ca.commits, 1);
 				if (ret < 0)
 					exit(128);
 				if (!ret) {
@@ -832,7 +832,8 @@ int delayed_reachability_test(struct shallow_info *si, int c)
 		si->reachable[c] = repo_in_merge_bases_many(the_repository,
 							    commit,
 							    si->nr_commits,
-							    si->commits);
+							    si->commits,
+							    1);
 		if (si->reachable[c] < 0)
 			exit(128);
 		si->need_reachability_test[c] = 0;
