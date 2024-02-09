@@ -104,6 +104,9 @@ advice.*::
 	rmHints::
 		In case of failure in the output of linkgit:git-rm[1],
 		show directions on how to proceed from the current state.
+	sequencerConflict::
+		Advice shown when a sequencer operation stops because
+		of conflicts.
 	sequencerInUse::
 		Advice shown when a sequencer command is already in progress.
 	skippedCherryPicks::
