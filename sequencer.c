@@ -2573,7 +2573,35 @@ static int check_label_or_ref_arg(enum todo_command command, const char *arg)
 	return 0;
 }
 
-static int parse_insn_line(struct repository *r, struct replay_opts *opts UNUSED,
+static int error_merge_commit(enum todo_command command)
+{
+	switch(command) {
+	case TODO_PICK:
+		return error(_("'%s' does not accept merge commits, "
+			       "please use '%s'"),
+			     todo_command_info[command].str, "merge -C");
+
+	case TODO_REWORD:
+		return error(_("'%s' does not accept merge commits, "
+			       "please use '%s'"),
+			     todo_command_info[command].str, "merge -c");
+
+	case TODO_EDIT:
+		return error(_("'%s' does not accept merge commits, "
+			       "please use '%s' followed by '%s'"),
+			     todo_command_info[command].str,
+			     "merge -C", "break");
+
+	case TODO_FIXUP:
+	case TODO_SQUASH:
+		return error(_("cannot squash merge commit into another commit"));
+
+	default:
+		BUG("unexpected todo_command");
+	}
+}
+
+static int parse_insn_line(struct repository *r, struct replay_opts *opts,
 			   struct todo_item *item, const char *buf,
 			   const char *bol, char *eol)
 {
@@ -2679,7 +2707,12 @@ static int parse_insn_line(struct repository *r, struct replay_opts *opts UNUSED
 		return status;
 
 	item->commit = lookup_commit_reference(r, &commit_oid);
-	return item->commit ? 0 : -1;
+	if (!item->commit)
+		return -1;
+	if (is_rebase_i(opts) && item->command != TODO_MERGE &&
+	    item->commit->parents && item->commit->parents->next)
+		return error_merge_commit(item->command);
+	return 0;
 }
 
 int sequencer_get_last_command(struct repository *r UNUSED, enum replay_action *action)
