@@ -114,7 +114,8 @@ int edit_todo_list(struct repository *r, struct todo_list *todo_list,
 	 * it.  If there is an error, we do not return, because the user
 	 * might want to fix it in the first place. */
 	if (!initial)
-		incorrect = todo_list_parse_insn_buffer(r, todo_list->buf.buf, todo_list) |
+		incorrect = todo_list_parse_insn_buffer(r, todo_list->buf.buf,
+							todo_list, 1) |
 			file_exists(rebase_path_dropped());
 
 	if (todo_list_write_to_file(r, todo_list, todo_file, shortrevisions, shortonto,
@@ -134,7 +135,7 @@ int edit_todo_list(struct repository *r, struct todo_list *todo_list,
 	if (initial && new_todo->buf.len == 0)
 		return -3;
 
-	if (todo_list_parse_insn_buffer(r, new_todo->buf.buf, new_todo)) {
+	if (todo_list_parse_insn_buffer(r, new_todo->buf.buf, new_todo, 1)) {
 		fprintf(stderr, _(edit_todo_list_advice));
 		return -4;
 	}
@@ -234,7 +235,7 @@ int todo_list_check_against_backup(struct repository *r, struct todo_list *todo_
 	int res = 0;
 
 	if (strbuf_read_file(&backup.buf, rebase_path_todo_backup(), 0) > 0) {
-		todo_list_parse_insn_buffer(r, backup.buf.buf, &backup);
+		todo_list_parse_insn_buffer(r, backup.buf.buf, &backup, 1);
 		res = todo_list_check(&backup, todo_list);
 	}
 

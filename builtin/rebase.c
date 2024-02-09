@@ -297,7 +297,7 @@ static int do_interactive_rebase(struct rebase_options *opts, unsigned flags)
 	else {
 		discard_index(&the_index);
 		if (todo_list_parse_insn_buffer(the_repository, todo_list.buf.buf,
-						&todo_list))
+						&todo_list, 1))
 			BUG("unusable todo list");
 
 		ret = complete_action(the_repository, &replay, flags,
