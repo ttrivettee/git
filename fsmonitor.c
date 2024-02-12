@@ -188,6 +188,20 @@ static size_t handle_path_with_trailing_slash(
 	struct index_state *istate, const char *name, int pos);
 
 /*
+ * Invalidate the FSM bit on this CE.  This is like mark_fsmonitor_invalid()
+ * but we've already handled the untracked-cache and I want a different
+ * trace message.
+ */
+static void invalidate_ce_fsm(struct cache_entry *ce)
+{
+	if (ce->ce_flags & CE_FSMONITOR_VALID)
+		trace_printf_key(&trace_fsmonitor,
+				 "fsmonitor_refresh_callback INV: '%s'",
+				 ce->name);
+	ce->ce_flags &= ~CE_FSMONITOR_VALID;
+}
+
+/*
  * Use the name-hash to do a case-insensitive cache-entry lookup with
  * the pathname and invalidate the cache-entry.
  *
@@ -224,7 +238,7 @@ static size_t handle_using_name_hash_icase(
 
 	untracked_cache_invalidate_trimmed_path(istate, ce->name, 0);
 
-	ce->ce_flags &= ~CE_FSMONITOR_VALID;
+	invalidate_ce_fsm(ce);
 	return 1;
 }
 
@@ -316,7 +330,7 @@ static size_t handle_path_without_trailing_slash(
 		 * cache-entry with the same pathname, nor for a cone
 		 * at that directory. (That is, assume no D/F conflicts.)
 		 */
-		istate->cache[pos]->ce_flags &= ~CE_FSMONITOR_VALID;
+		invalidate_ce_fsm(istate->cache[pos]);
 		return 1;
 	} else {
 		size_t nr_in_cone;
@@ -394,7 +408,7 @@ static size_t handle_path_with_trailing_slash(
 	for (i = pos; i < istate->cache_nr; i++) {
 		if (!starts_with(istate->cache[i]->name, name))
 			break;
-		istate->cache[i]->ce_flags &= ~CE_FSMONITOR_VALID;
+		invalidate_ce_fsm(istate->cache[i]);
 		nr_in_cone++;
 	}
 
