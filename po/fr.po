@@ -10495,7 +10495,7 @@ msgstr ""
 "Note : votre configuration `pull.rebase` peut aussi être 'preserve',\n"
 "qui n'est plus géré ; utilisez 'merges' à la place"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Pas de rebasage en cours ?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

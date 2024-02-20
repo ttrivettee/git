@@ -20449,7 +20449,7 @@ msgid "cannot combine '--root' with '--fork-point'"
 msgstr "„--root” i „--fork-point” się wykluczają"
 
 #: builtin/rebase.c:1202
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Nie trwa żadne przestawianie?"
 
 #: builtin/rebase.c:1206

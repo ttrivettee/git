@@ -12723,7 +12723,7 @@ msgstr ""
 "取而代之请使用 'merges'"
 
 #: builtin/rebase.c
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "没有正在进行的变基？"
 
 #: builtin/rebase.c

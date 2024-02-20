@@ -10782,7 +10782,7 @@ msgstr ""
 "„preserve“.\n"
 "Тази стойност вече не се поддържа, заменете я с „merges“."
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Изглежда в момента не тече пребазиране"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

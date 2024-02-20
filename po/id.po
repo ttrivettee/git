@@ -12843,7 +12843,7 @@ msgstr ""
 "yang tidak lagi didukung; gunakan 'merges' sebagai gantinya"
 
 #: builtin/rebase.c
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Tidak ada pendasaran ulang yang sedang berjalan?"
 
 #: builtin/rebase.c

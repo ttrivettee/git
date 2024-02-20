@@ -9963,7 +9963,7 @@ msgstr ""
 "'preserve',\n"
 "cái mà giờ không còn được hỗ trợ nữa; dùng 'merges' để thay thế"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Không có tiến trình rebase nào phải không?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

@@ -9986,7 +9986,7 @@ msgid ""
 "which is no longer supported; use 'merges' instead"
 msgstr ""
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Нет перемещения в процессе?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

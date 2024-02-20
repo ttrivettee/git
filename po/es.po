@@ -10109,7 +10109,7 @@ msgstr ""
 "configurada a 'preserve', el cual ya no es soportado; usa 'merges' en\n"
 "su lugar"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "¿No hay rebase en progreso?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

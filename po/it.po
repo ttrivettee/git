@@ -19666,7 +19666,7 @@ msgid "cannot combine '--root' with '--fork-point'"
 msgstr "impossibile combinare '--root' con '--fork-point'"
 
 #: builtin/rebase.c:1495
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Nessun rebase in corso?"
 
 #: builtin/rebase.c:1499

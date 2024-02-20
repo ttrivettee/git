@@ -10390,7 +10390,7 @@ msgstr ""
 "Nota: la configuració «pull.rebase» també podria estar establerta a\n"
 "+-«preserve», que ja no s'admet; utilitzeu «merge» en el seu lloc"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "No hi ha un «rebase» en curs?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

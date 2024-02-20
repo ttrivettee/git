@@ -15726,7 +15726,7 @@ msgid "It looks like 'git am' is in progress. Cannot rebase."
 msgstr ""
 
 #: builtin/rebase.c:1208 git-legacy-rebase.sh:406
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr ""
 
 #: builtin/rebase.c:1212 git-legacy-rebase.sh:417

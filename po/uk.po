@@ -10341,7 +10341,7 @@ msgstr ""
 "значення \"preserve\",\n"
 "який більше не підтримується; натомість використовуйте \"merges\""
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Перебазування не відбувається?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

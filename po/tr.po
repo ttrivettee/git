@@ -10278,7 +10278,7 @@ msgstr ""
 "Not: `pull.rebase` yapılandırmanız, artık desteklenmeyen'\n"
 "'preserve' olarak ayarlı olabilir; yerine 'merges' kullanın"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Sürmekte olan bir yeniden temellendirme yok"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

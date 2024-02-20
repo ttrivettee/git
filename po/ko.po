@@ -16245,7 +16245,7 @@ msgid "It looks like 'git am' is in progress. Cannot rebase."
 msgstr "'git am'이 진행 중인 것처럼 보입니다. 리베이스할 수 없습니다."
 
 #: git-rebase.sh:403
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "리베이스가 진행 중이지 않습니다"
 
 #: git-rebase.sh:414

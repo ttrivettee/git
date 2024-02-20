@@ -10153,7 +10153,7 @@ msgstr ""
 "Observera: Din inställning för ”pull.rebase” kan också vara satt till\n"
 "”preserve”, som inte längre stöds; använd ”merges” istället"
 
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Ingen ombasering pågår?"
 
 msgid "The --edit-todo action can only be used during interactive rebase."

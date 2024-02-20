@@ -20608,7 +20608,7 @@ msgid "--preserve-merges was replaced by --rebase-merges"
 msgstr ""
 
 #: builtin/rebase.c:1230
-msgid "No rebase in progress?"
+msgid "No rebase in progress"
 msgstr "Algum rebase em curso?"
 
 #: builtin/rebase.c:1234
