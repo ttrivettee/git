@@ -1051,7 +1051,7 @@ test_expect_success 'split-index and FSMonitor work well together' '
 #
 # The setup is a little contrived.
 #
-test_expect_success CASE_INSENSITIVE_FS 'fsmonitor subdir case wrong on disk' '
+test_expect_success SKIPME,CASE_INSENSITIVE_FS 'fsmonitor subdir case wrong on disk' '
 	test_when_finished "stop_daemon_delete_repo subdir_case_wrong" &&
 
 	git init subdir_case_wrong &&
@@ -1128,7 +1128,7 @@ test_expect_success CASE_INSENSITIVE_FS 'fsmonitor subdir case wrong on disk' '
 	! grep -q " M dir1/dir2/dir3/file3" "$PWD/subdir_case_wrong.out"
 '
 
-test_expect_success CASE_INSENSITIVE_FS 'fsmonitor file case wrong on disk' '
+test_expect_success SKIPME,CASE_INSENSITIVE_FS 'fsmonitor file case wrong on disk' '
 	test_when_finished "stop_daemon_delete_repo file_case_wrong" &&
 
 	git init file_case_wrong &&
