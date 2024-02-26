@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description='racy GIT'
+test_description='racy git'
 
 TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
@@ -16,19 +16,18 @@ do
 	echo xyzzy >infocom
 
 	files=$(git diff-files -p)
-	test_expect_success \
-	"Racy GIT trial #$trial part A" \
-	'test "" != "$files"'
+	test_expect_success 'Racy git trial #$trial part A' '
+		test "" != "$files"
+	'
 
 	sleep 1
 	echo xyzzy >cornerstone
 	git update-index --add cornerstone
 
 	files=$(git diff-files -p)
-	test_expect_success \
-	"Racy GIT trial #$trial part B" \
-	'test "" != "$files"'
-
+	test_expect_success 'Racy git trial #$trial part B' '
+		test "" != "$files"
+	'
 done
 
 test_done
