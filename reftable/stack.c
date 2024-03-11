@@ -1237,7 +1237,7 @@ struct segment suggest_compaction_segment(uint64_t *sizes, size_t n)
 	 */
 	for (i = n - 1; i > 0; i--) {
 		if (sizes[i - 1] < sizes[i] * 2) {
-			seg.end = i + 1;
+			seg.end = i;
 			bytes = sizes[i];
 			break;
 		}
@@ -1291,7 +1291,7 @@ int reftable_stack_auto_compact(struct reftable_stack *st)
 		suggest_compaction_segment(sizes, st->merged->stack_len);
 	reftable_free(sizes);
 	if (segment_size(&seg) > 0)
-		return stack_compact_range_stats(st, seg.start, seg.end - 1,
+		return stack_compact_range_stats(st, seg.start, seg.end,
 						 NULL);
 
 	return 0;

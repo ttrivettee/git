@@ -723,7 +723,7 @@ static void test_suggest_compaction_segment(void)
 	struct segment min =
 		suggest_compaction_segment(sizes, ARRAY_SIZE(sizes));
 	EXPECT(min.start == 1);
-	EXPECT(min.end == 10);
+	EXPECT(min.end == 9);
 }
 
 static void test_suggest_compaction_segment_nothing(void)
