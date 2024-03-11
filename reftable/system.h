@@ -15,6 +15,7 @@ https://developers.google.com/open-source/licenses/bsd
 #include "strbuf.h"
 #include "hash-ll.h" /* hash ID, sizes.*/
 #include "dir.h" /* remove_dir_recursively, for tests.*/
+#include "parse.h"
 
 int hash_size(uint32_t id);
 
