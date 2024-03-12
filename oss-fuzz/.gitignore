@@ -2,3 +2,4 @@ fuzz-commit-graph
 fuzz-date
 fuzz-pack-headers
 fuzz-pack-idx
+fuzz-config
