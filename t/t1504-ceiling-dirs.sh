@@ -56,6 +56,29 @@ then
 fi
 
 mkdir -p sub/dir || exit 1
+
+unset GIT_CEILING_DIRECTORIES
+
+test_expect_success 'dynamic ceiling does not kick in without keyword' '
+	test_when_finished "rm -f sub/.git sub/dir/x" &&
+	echo bogus >sub/.git &&
+	echo hit >sub/dir/x &&
+	test_must_fail git -C sub/dir grep --no-index hit 2>error &&
+	test_grep "invalid gitfile format" error
+'
+
+test_expect_success 'dynamic ceiling kicks in with keyword' '
+	test_when_finished "rm -f sub/.git sub/dir/x" &&
+	echo "git ceiling directory" >sub/.git &&
+	echo hit >sub/dir/x &&
+	git -C sub/dir grep --no-index hit &&
+
+	test_must_fail git -C sub/dir grep hit 2>error &&
+	test_grep "not a git directory" error
+'
+
+exit
+
 cd sub/dir || exit 1
 
 unset GIT_CEILING_DIRECTORIES
@@ -182,6 +205,5 @@ test_prefix sd_ceil_at_sdi "s/d/"
 
 GIT_CEILING_DIRECTORIES="$TRASH_ROOT/sdi"
 test_prefix sd_ceil_at_sdi_slash "s/d/"
-
 
 test_done

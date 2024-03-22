@@ -829,6 +829,7 @@ void read_gitfile_error_die(int error_code, const char *path, const char *dir)
 	switch (error_code) {
 	case READ_GITFILE_ERR_STAT_FAILED:
 	case READ_GITFILE_ERR_NOT_A_FILE:
+	case READ_GITFILE_ERR_CEILING_MARK:
 		/* non-fatal; follow return path */
 		break;
 	case READ_GITFILE_ERR_OPEN_FAILED:
@@ -893,6 +894,10 @@ const char *read_gitfile_gently(const char *path, int *return_error_code)
 	close(fd);
 	if (len != st.st_size) {
 		error_code = READ_GITFILE_ERR_READ_FAILED;
+		goto cleanup_return;
+	}
+	if (starts_with(buf, "git ceiling directory")) {
+		error_code = READ_GITFILE_ERR_CEILING_MARK;
 		goto cleanup_return;
 	}
 	if (!starts_with(buf, "gitdir: ")) {
@@ -1387,11 +1392,12 @@ static enum discovery_result setup_git_directory_gently_1(struct strbuf *dir,
 		if (offset > min_offset)
 			strbuf_addch(dir, '/');
 		strbuf_addstr(dir, DEFAULT_GIT_DIR_ENVIRONMENT);
-		gitdirenv = read_gitfile_gently(dir->buf, die_on_error ?
-						NULL : &error_code);
+		gitdirenv = read_gitfile_gently(dir->buf, &error_code);
 		if (!gitdirenv) {
-			if (die_on_error ||
-			    error_code == READ_GITFILE_ERR_NOT_A_FILE) {
+			if (error_code == READ_GITFILE_ERR_CEILING_MARK)
+				return GIT_DIR_HIT_CEILING;
+
+			if (error_code == READ_GITFILE_ERR_NOT_A_FILE) {
 				/* NEEDSWORK: fail if .git is not file nor dir */
 				if (is_git_directory(dir->buf)) {
 					gitdirenv = DEFAULT_GIT_DIR_ENVIRONMENT;
@@ -1595,6 +1601,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 		*nongit_ok = 1;
 		break;
 	case GIT_DIR_CWD_FAILURE:
+	case GIT_DIR_INVALID_GITFILE:
 	case GIT_DIR_INVALID_FORMAT:
 		/*
 		 * As a safeguard against setup_git_directory_gently_1 returning
