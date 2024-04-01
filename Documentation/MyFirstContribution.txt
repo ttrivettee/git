@@ -1116,6 +1116,11 @@ $ git send-email --to=target@example.com psuh/*.patch
 NOTE: Check `git help send-email` for some other options which you may find
 valuable, such as changing the Reply-to address or adding more CC and BCC lines.
 
+NOTE: Use `contrib/contacts/git-contacts` to get a list of reviewers you should
+include in the CC list. In addition, you can do `git send-email --cc-cmd='git
+contacts' feature/*.patch` to automatically pass this list of emails to
+`send-email`.
+
 NOTE: When you are sending a real patch, it will go to git@vger.kernel.org - but
 please don't send your patchset from the tutorial to the real mailing list! For
 now, you can send it to yourself, to make sure you understand how it will look.
