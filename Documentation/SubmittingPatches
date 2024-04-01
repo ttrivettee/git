@@ -459,6 +459,10 @@ an explanation of changes between each iteration can be kept in
 Git-notes and inserted automatically following the three-dash
 line via `git format-patch --notes`.
 
+[[suggested-reviewers]]
+Use `contrib/contacts/git-contacts` to get a list of reviewers you should
+include in the CC list.
+
 [[attachment]]
 Do not attach the patch as a MIME attachment, compressed or not.
 Do not let your e-mail client send quoted-printable.  Do not let
