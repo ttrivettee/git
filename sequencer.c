@@ -1121,6 +1121,8 @@ static int run_git_commit(const char *defmsg,
 		strvec_pushf(&cmd.args, "-S%s", opts->gpg_sign);
 	else
 		strvec_push(&cmd.args, "--no-gpg-sign");
+	if (opts->signoff)
+		strvec_push(&cmd.args, "--signoff");
 	if (defmsg)
 		strvec_pushl(&cmd.args, "-F", defmsg, NULL);
 	else if (!(flags & EDIT_MSG))

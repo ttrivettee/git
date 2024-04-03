@@ -27,6 +27,13 @@ first
 Signed-off-by: $(git var GIT_COMMITTER_IDENT | sed -e "s/>.*/>/")
 EOF
 
+# Expected signed off message after resolving the conflict
+cat >expected-signed-after-conflict <<EOF
+update file on side
+
+Signed-off-by: $(git var GIT_COMMITTER_IDENT | sed -e "s/>.*/>/")
+EOF
+
 # Expected commit message after rebase without --signoff (or with --no-signoff)
 cat >expected-unsigned <<EOF
 first
@@ -82,4 +89,30 @@ test_expect_success 'rebase -m --signoff fails' '
 	git cat-file commit HEAD | sed -e "1,/^\$/d" >actual &&
 	test_cmp expected-signed actual
 '
+
+test_expect_success 'rebase -i signs commits even if a conflict occurs' '
+	git branch -M main &&
+
+	git branch side &&
+	echo "b" >file &&
+	git add file &&
+	git commit -m"update file" &&
+	test_tick &&
+
+	git checkout side &&
+	echo "side" >file &&
+	git add file &&
+	git commit -m"update file on side" &&
+	test_tick &&
+
+	test_must_fail git rebase -i --signoff main &&
+
+	echo "merged" >file &&
+	git add file &&
+	git rebase --continue &&
+
+	git cat-file commit HEAD | sed -e "1,/^\$/d" >actual &&
+	test_cmp expected-signed-after-conflict actual
+'
+
 test_done
