@@ -797,7 +797,7 @@ void compile_grep_patterns(struct grep_opt *opt)
 	if (opt->no_body_match && opt->pattern_expression)
 		opt->pattern_expression = grep_not_expr(opt->pattern_expression);
 
-	if (!header_expr)
+	if (!header_expr || opt->header_or)
 		return;
 
 	if (!opt->pattern_expression)

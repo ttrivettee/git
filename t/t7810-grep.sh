@@ -961,6 +961,17 @@ test_expect_success 'log --grep --author uses intersection' '
 	test_cmp expect actual
 '
 
+test_expect_success 'log --grep --author --header-or uses union' '
+	# grep matches only third and fourth
+	# author matches only initial and third
+	git log --author="A U Thor" --grep=r --header-or --format=%s >actual &&
+	{
+	    echo fourth && echo third
+	} >expect &&
+	test_cmp expect actual
+'
+
+
 test_expect_success 'log --grep --grep --author takes union of greps and intersects with author' '
 	# grep matches initial and second but not third
 	# author matches only initial and third
