@@ -434,6 +434,30 @@ test_expect_success 'tagged commits are selected for bitmapping' '
 	)
 '
 
+test_expect_success 'do not follow replace objects for MIDX bitmap' '
+	rm -fr repo &&
+	git init repo &&
+	test_when_finished "rm -fr repo" &&
+	(
+		cd repo &&
+
+		test_commit A &&
+		A=$(git rev-parse HEAD) &&
+		test_commit B &&
+		B=$(git rev-parse HEAD) &&
+		git checkout --orphan=orphan $A &&
+		test_commit orphan &&
+		C=$(git rev-parse HEAD) &&
+		git rev-list --objects --no-object-names $B |sort >expected &&
+
+		git replace $A $C &&
+		git repack -ad &&
+		git multi-pack-index write --bitmap &&
+		git rev-list --objects --no-object-names --use-bitmap-index $B |sort >actual &&
+		test_cmp expected actual
+	)
+'
+
 corrupt_file () {
 	chmod a+w "$1" &&
 	printf "bogus" | dd of="$1" bs=1 seek="12" conv=notrunc
