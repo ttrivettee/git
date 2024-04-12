@@ -355,6 +355,7 @@ static int check_and_set_terms(struct bisect_terms *terms, const char *cmd)
 }
 
 static int inc_nr(const char *refname UNUSED,
+		  const char *referent UNUSED,
 		  const struct object_id *oid UNUSED,
 		  int flag UNUSED, void *cb_data)
 {
@@ -544,7 +545,7 @@ finish:
 	return res;
 }
 
-static int add_bisect_ref(const char *refname, const struct object_id *oid,
+static int add_bisect_ref(const char *refname, const char *referent UNUSED, const struct object_id *oid,
 			  int flags UNUSED, void *cb)
 {
 	struct add_bisect_ref_data *data = cb;
@@ -1161,6 +1162,7 @@ static int bisect_visualize(struct bisect_terms *terms, int argc,
 }
 
 static int get_first_good(const char *refname UNUSED,
+			  const char *referent UNUSED,
 			  const struct object_id *oid,
 			  int flag UNUSED, void *cb_data)
 {
