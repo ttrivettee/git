@@ -218,14 +218,18 @@ test_expect_success UNZIP 'git archive --format=zip --add-virtual-file' '
 	fi &&
 	git archive --format=zip >with_file_with_content.zip \
 		--add-virtual-file=\""$PATHNAME"\": \
-		--add-virtual-file=hello:world $EMPTY_TREE &&
+		--add-virtual-file=hello:world \
+		--prefix=subdir/ --add-virtual-file=hello:world \
+		--prefix= $EMPTY_TREE &&
 	test_when_finished "rm -rf tmp-unpack" &&
 	mkdir tmp-unpack && (
 		cd tmp-unpack &&
 		"$GIT_UNZIP" ../with_file_with_content.zip &&
 		test_path_is_file hello &&
 		test_path_is_file "$PATHNAME" &&
-		test world = $(cat hello)
+		test world = $(cat hello) &&
+		test_path_is_file subdir/hello &&
+		test world = $(cat subdir/hello)
 	)
 '
 
