@@ -30,7 +30,7 @@ test_expect_success 'compute a patch-id outside repository' '
 	test_cmp patch-id.expect patch-id.actual
 '
 
-test_expect_failure 'hash-object outside repository' '
+test_expect_success 'hash-object outside repository' '
 	git hash-object --stdin <sample.patch >hash.expect &&
 	(
 		cd non-repo &&
