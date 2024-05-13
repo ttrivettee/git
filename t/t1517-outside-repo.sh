@@ -21,7 +21,7 @@ test_expect_success 'set up a non-repo directory and test file' '
 	git diff >sample.patch
 '
 
-test_expect_failure 'compute a patch-id outside repository' '
+test_expect_success 'compute a patch-id outside repository' '
 	git patch-id <sample.patch >patch-id.expect &&
 	(
 		cd non-repo &&
