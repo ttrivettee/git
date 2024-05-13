@@ -1,6 +1,7 @@
 #include "builtin.h"
 #include "gettext.h"
 #include "repository.h"
+#include "hash.h"
 #include "apply.h"
 
 static const char * const apply_usage[] = {
@@ -17,6 +18,9 @@ int cmd_apply(int argc, const char **argv, const char *prefix)
 
 	if (init_apply_state(&state, the_repository, prefix))
 		exit(128);
+
+	if (!the_hash_algo)
+		repo_set_hash_algo(the_repository, GIT_HASH_SHA1);
 
 	argc = apply_parse_options(argc, argv,
 				   &state, &force_apply, &options,
