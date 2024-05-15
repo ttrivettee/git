@@ -553,6 +553,11 @@ include shared.mak
 # If don't enable any of the *_SHA256 settings in this section, Git
 # will default to its built-in sha256 implementation.
 #
+# == Privacy? ==
+#
+# Define NO_TRACE2 to completely compile out the trace2 subsystem
+# to avoid leaking trace log to anywhere.
+#
 # == DEVELOPER defines ==
 #
 # Define DEVELOPER to enable more compiler warnings. Compiler version
@@ -1537,6 +1542,10 @@ endif
 
 ifneq (,$(INLINE))
 	BASIC_CFLAGS += -Dinline=$(INLINE)
+endif
+
+ifneq (,$(NO_TRACE2))
+	BASIC_CFLAGS += -DNO_TRACE2
 endif
 
 ifneq (,$(SOCKLEN_T))
@@ -3134,6 +3143,7 @@ GIT-BUILD-OPTIONS: FORCE
 	@echo NO_PTHREADS=\''$(subst ','\'',$(subst ','\'',$(NO_PTHREADS)))'\' >>$@+
 	@echo NO_PYTHON=\''$(subst ','\'',$(subst ','\'',$(NO_PYTHON)))'\' >>$@+
 	@echo NO_REGEX=\''$(subst ','\'',$(subst ','\'',$(NO_REGEX)))'\' >>$@+
+	@echo NO_TRACE2=\''$(subst ','\'',$(subst ','\'',$(NO_TRACE2)))'\' >>$@+
 	@echo NO_UNIX_SOCKETS=\''$(subst ','\'',$(subst ','\'',$(NO_UNIX_SOCKETS)))'\' >>$@+
 	@echo PAGER_ENV=\''$(subst ','\'',$(subst ','\'',$(PAGER_ENV)))'\' >>$@+
 	@echo SANITIZE_LEAK=\''$(subst ','\'',$(subst ','\'',$(SANITIZE_LEAK)))'\' >>$@+

@@ -6,6 +6,7 @@
 #include <psapi.h>
 #include <tlhelp32.h>
 
+#ifndef NO_TRACE2
 /*
  * An arbitrarily chosen value to limit the size of the ancestor
  * array built in git_processes().
@@ -191,3 +192,4 @@ void trace2_collect_process_info(enum trace2_process_info_reason reason)
 		BUG("trace2_collect_process_info: unknown reason '%d'", reason);
 	}
 }
+#endif

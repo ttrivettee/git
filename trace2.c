@@ -16,6 +16,8 @@
 #include "trace2/tr2_tls.h"
 #include "trace2/tr2_tmr.h"
 
+#ifndef NO_TRACE2
+
 static int trace2_enabled;
 static int trace2_redact = 1;
 
@@ -1040,3 +1042,5 @@ const char *trace2_session_id(void)
 {
 	return tr2_sid_get();
 }
+
+#endif

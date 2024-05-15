@@ -42,6 +42,7 @@
  */
 #define STAT_PARENT_PID_READ_N 64
 
+#ifndef NO_TRACE2
 static int parse_proc_stat(struct strbuf *sb, struct strbuf *name,
 			    int *statppid)
 {
@@ -174,3 +175,4 @@ void trace2_collect_process_info(enum trace2_process_info_reason reason)
 
 	return;
 }
+#endif

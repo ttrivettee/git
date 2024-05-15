@@ -81,7 +81,7 @@ test_expect_success 'test-tool env-helper --type=ulong' '
 	test_must_be_empty actual.err
 '
 
-test_expect_success 'test-tool env-helper reads config thanks to trace2' '
+test_expect_success TRACE2 'test-tool env-helper reads config thanks to trace2' '
 	mkdir home &&
 	git config -f home/.gitconfig include.path cycle &&
 	git config -f home/cycle include.path .gitconfig &&
