@@ -7,6 +7,7 @@
 #include "refs.h"
 #include "run-command.h"
 #include "hashmap.h"
+#include "packfile.h"
 #include "pkt-line.h"
 #include "config.h"
 #include "remote.h"
@@ -375,6 +376,8 @@ static int unbundle_from_file(struct repository *r, const char *file)
 	if ((result = unbundle(r, &header, bundle_fd, NULL,
 			       VERIFY_BUNDLE_QUIET)))
 		return 1;
+
+	reprepare_packed_git(r);
 
 	/*
 	 * Convert all refs/heads/ from the bundle into refs/bundles/
