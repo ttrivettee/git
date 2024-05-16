@@ -6347,16 +6347,18 @@ static int remove_space(char *line, int len)
 	return dst - line;
 }
 
-void flush_one_hunk(struct object_id *result, git_hash_ctx *ctx)
+void flush_one_hunk(struct object_id *result,
+		    const struct git_hash_algo *hash_algo,
+		    git_hash_ctx *ctx)
 {
 	unsigned char hash[GIT_MAX_RAWSZ];
 	unsigned short carry = 0;
 	int i;
 
-	the_hash_algo->final_fn(hash, ctx);
-	the_hash_algo->init_fn(ctx);
-	/* 20-byte sum, with carry */
-	for (i = 0; i < the_hash_algo->rawsz; ++i) {
+	hash_algo->final_fn(hash, ctx);
+	hash_algo->init_fn(ctx);
+	/* N-byte sum, with carry */
+	for (i = 0; i < hash_algo->rawsz; ++i) {
 		carry += result->hash[i] + hash[i];
 		result->hash[i] = carry;
 		carry >>= 8;
@@ -6397,8 +6399,9 @@ static int diff_get_patch_id(struct diff_options *options, struct object_id *oid
 	int i;
 	git_hash_ctx ctx;
 	struct patch_id_t data;
+	const struct git_hash_algo *hash_algo = the_hash_algo;
 
-	the_hash_algo->init_fn(&ctx);
+	hash_algo->init_fn(&ctx);
 	memset(&data, 0, sizeof(struct patch_id_t));
 	data.ctx = &ctx;
 	oidclr(oid);
@@ -6431,9 +6434,9 @@ static int diff_get_patch_id(struct diff_options *options, struct object_id *oid
 		len2 = remove_space(p->two->path, strlen(p->two->path));
 		patch_id_add_string(&ctx, "diff--git");
 		patch_id_add_string(&ctx, "a/");
-		the_hash_algo->update_fn(&ctx, p->one->path, len1);
+		hash_algo->update_fn(&ctx, p->one->path, len1);
 		patch_id_add_string(&ctx, "b/");
-		the_hash_algo->update_fn(&ctx, p->two->path, len2);
+		hash_algo->update_fn(&ctx, p->two->path, len2);
 
 		if (p->one->mode == 0) {
 			patch_id_add_string(&ctx, "newfilemode");
@@ -6452,24 +6455,24 @@ static int diff_get_patch_id(struct diff_options *options, struct object_id *oid
 			/* don't do anything since we're only populating header info */
 		} else if (diff_filespec_is_binary(options->repo, p->one) ||
 		    diff_filespec_is_binary(options->repo, p->two)) {
-			the_hash_algo->update_fn(&ctx, oid_to_hex(&p->one->oid),
-					the_hash_algo->hexsz);
-			the_hash_algo->update_fn(&ctx, oid_to_hex(&p->two->oid),
-					the_hash_algo->hexsz);
+			hash_algo->update_fn(&ctx, oid_to_hex(&p->one->oid),
+					     hash_algo->hexsz);
+			hash_algo->update_fn(&ctx, oid_to_hex(&p->two->oid),
+					     hash_algo->hexsz);
 		} else {
 			if (p->one->mode == 0) {
 				patch_id_add_string(&ctx, "---/dev/null");
 				patch_id_add_string(&ctx, "+++b/");
-				the_hash_algo->update_fn(&ctx, p->two->path, len2);
+				hash_algo->update_fn(&ctx, p->two->path, len2);
 			} else if (p->two->mode == 0) {
 				patch_id_add_string(&ctx, "---a/");
-				the_hash_algo->update_fn(&ctx, p->one->path, len1);
+				hash_algo->update_fn(&ctx, p->one->path, len1);
 				patch_id_add_string(&ctx, "+++/dev/null");
 			} else {
 				patch_id_add_string(&ctx, "---a/");
-				the_hash_algo->update_fn(&ctx, p->one->path, len1);
+				hash_algo->update_fn(&ctx, p->one->path, len1);
 				patch_id_add_string(&ctx, "+++b/");
-				the_hash_algo->update_fn(&ctx, p->two->path, len2);
+				hash_algo->update_fn(&ctx, p->two->path, len2);
 			}
 
 			if (fill_mmfile(options->repo, &mf1, p->one) < 0 ||
@@ -6483,7 +6486,7 @@ static int diff_get_patch_id(struct diff_options *options, struct object_id *oid
 				return error("unable to generate patch-id diff for %s",
 					     p->one->path);
 		}
-		flush_one_hunk(oid, &ctx);
+		flush_one_hunk(oid, hash_algo, &ctx);
 	}
 
 	return 0;

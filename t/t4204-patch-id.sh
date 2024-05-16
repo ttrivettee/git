@@ -325,11 +325,13 @@ test_expect_failure 'patch-id computes same ID with different object hashes' '
 	EOF
 
 	git init --object-format=sha1 repo-sha1 &&
-	git -C repo-sha1 patch-id <diff >patch-id-sha1 &&
+	git -C repo-sha1 patch-id --stable <diff >patch-id-sha1 &&
 	git init --object-format=sha256 repo-sha256 &&
-	git -C repo-sha256 patch-id <diff >patch-id-sha256 &&
+	git -C repo-sha256 patch-id --stable <diff >patch-id-sha256 &&
 	test_cmp patch-id-sha1 patch-id-sha256
 '
+
+exit
 
 test_expect_success 'patch-id without repository' '
 	cat >diff <<-\EOF &&
