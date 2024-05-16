@@ -41,4 +41,8 @@ test_expect_success 'git rev-parse --git-path hooks' '
 	test .git/custom-hooks/abc = "$(cat actual)"
 '
 
+test_expect_success 'core.hooksPath=/dev/null' '
+	git clone -c core.hooksPath=/dev/null . no-templates
+'
+
 test_done
