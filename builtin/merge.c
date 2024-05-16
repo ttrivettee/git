@@ -698,8 +698,10 @@ static int try_merge_strategy(const char *strategy, struct commit_list *common,
 
 	if (repo_refresh_and_write_index(the_repository, REFRESH_QUIET,
 					 SKIP_IF_UNCHANGED, 0, NULL, NULL,
-					 NULL) < 0)
-		return error(_("Unable to write index."));
+					 NULL) < 0) {
+		error(_("Unable to write index."));
+		return 2;
+	}
 
 	if (!strcmp(strategy, "recursive") || !strcmp(strategy, "subtree") ||
 	    !strcmp(strategy, "ort")) {
