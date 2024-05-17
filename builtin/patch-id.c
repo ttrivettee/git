@@ -6,10 +6,14 @@
 #include "hex.h"
 #include "parse-options.h"
 
-static void flush_current_id(int patchlen, struct object_id *id, struct object_id *result)
+static void flush_current_id(int patchlen,
+			     struct object_id *id, struct object_id *result,
+			     const struct git_hash_algo *hash_algo)
 {
 	if (patchlen)
-		printf("%s %s\n", oid_to_hex(result), oid_to_hex(id));
+		printf("%s %s\n",
+		       hash_to_hex_algop(result->hash, hash_algo),
+		       oid_to_hex(id));
 }
 
 static int remove_space(char *line)
@@ -184,7 +188,7 @@ static void generate_id_list(int stable, int verbatim)
 	while (!feof(stdin)) {
 		patchlen = get_one_patchid(&n, &result, hash_algo,
 					   &line_buf, stable, verbatim);
-		flush_current_id(patchlen, &oid, &result);
+		flush_current_id(patchlen, &oid, &result, hash_algo);
 		oidcpy(&oid, &n);
 	}
 	strbuf_release(&line_buf);
