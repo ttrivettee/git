@@ -60,6 +60,7 @@ static int scan_hunk_header(const char *p, int *p_before, int *p_after)
 }
 
 static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
+			   const struct git_hash_algo *hash_algo,
 			   struct strbuf *line_buf, int stable, int verbatim)
 {
 	int patchlen = 0, found_next = 0;
@@ -68,7 +69,7 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 	char pre_oid_str[GIT_MAX_HEXSZ + 1], post_oid_str[GIT_MAX_HEXSZ + 1];
 	git_hash_ctx ctx;
 
-	the_hash_algo->init_fn(&ctx);
+	hash_algo->init_fn(&ctx);
 	oidclr(result);
 
 	while (strbuf_getwholeline(line_buf, stdin, '\n') != EOF) {
@@ -81,7 +82,7 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 		    !skip_prefix(line, "From ", &p) &&
 		    starts_with(line, "\\ ") && 12 < strlen(line)) {
 			if (verbatim)
-				the_hash_algo->update_fn(&ctx, line, strlen(line));
+				hash_algo->update_fn(&ctx, line, strlen(line));
 			continue;
 		}
 
@@ -100,12 +101,12 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 			    starts_with(line, "Binary files")) {
 				diff_is_binary = 1;
 				before = 0;
-				the_hash_algo->update_fn(&ctx, pre_oid_str,
-							 strlen(pre_oid_str));
-				the_hash_algo->update_fn(&ctx, post_oid_str,
-							 strlen(post_oid_str));
+				hash_algo->update_fn(&ctx, pre_oid_str,
+						     strlen(pre_oid_str));
+				hash_algo->update_fn(&ctx, post_oid_str,
+						     strlen(post_oid_str));
 				if (stable)
-					flush_one_hunk(result, &ctx);
+					flush_one_hunk(result, hash_algo, &ctx);
 				continue;
 			} else if (skip_prefix(line, "index ", &p)) {
 				char *oid1_end = strstr(line, "..");
@@ -148,7 +149,7 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 
 			/* Else we're parsing another header.  */
 			if (stable)
-				flush_one_hunk(result, &ctx);
+				flush_one_hunk(result, hash_algo, &ctx);
 			before = after = -1;
 		}
 
@@ -161,13 +162,13 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 		/* Add line to hash algo (possibly removing whitespace) */
 		len = verbatim ? strlen(line) : remove_space(line);
 		patchlen += len;
-		the_hash_algo->update_fn(&ctx, line, len);
+		hash_algo->update_fn(&ctx, line, len);
 	}
 
 	if (!found_next)
 		oidclr(next_oid);
 
-	flush_one_hunk(result, &ctx);
+	flush_one_hunk(result, hash_algo, &ctx);
 
 	return patchlen;
 }
@@ -177,10 +178,12 @@ static void generate_id_list(int stable, int verbatim)
 	struct object_id oid, n, result;
 	int patchlen;
 	struct strbuf line_buf = STRBUF_INIT;
+	const struct git_hash_algo *hash_algo = the_hash_algo;
 
 	oidclr(&oid);
 	while (!feof(stdin)) {
-		patchlen = get_one_patchid(&n, &result, &line_buf, stable, verbatim);
+		patchlen = get_one_patchid(&n, &result, hash_algo,
+					   &line_buf, stable, verbatim);
 		flush_current_id(patchlen, &oid, &result);
 		oidcpy(&oid, &n);
 	}
