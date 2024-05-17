@@ -182,7 +182,12 @@ static void generate_id_list(int stable, int verbatim)
 	struct object_id oid, n, result;
 	int patchlen;
 	struct strbuf line_buf = STRBUF_INIT;
-	const struct git_hash_algo *hash_algo = the_hash_algo;
+	const struct git_hash_algo *hash_algo;
+
+	if (stable)
+		hash_algo = &hash_algos[GIT_HASH_SHA1];
+	else
+		hash_algo = the_hash_algo;
 
 	oidclr(&oid);
 	while (!feof(stdin)) {
