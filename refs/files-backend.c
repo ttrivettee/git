@@ -244,7 +244,7 @@ static void loose_fill_ref_dir_regular_file(struct files_ref_store *refs,
 	struct object_id oid;
 	int flag;
 
-	if (!refs_resolve_ref_unsafe(&refs->base, refname, RESOLVE_REF_READING,
+	if (!refs_resolve_ref_unsafe(&refs->base, refname, NULL, RESOLVE_REF_READING,
 				     &oid, &flag)) {
 		oidclr(&oid);
 		flag |= REF_ISBROKEN;
@@ -1118,7 +1118,7 @@ static struct ref_lock *lock_ref_oid_basic(struct files_ref_store *refs,
 		goto error_return;
 	}
 
-	if (!refs_resolve_ref_unsafe(&refs->base, lock->ref_name, 0,
+	if (!refs_resolve_ref_unsafe(&refs->base, lock->ref_name, NULL, 0,
 				     &lock->old_oid, NULL))
 		oidclr(&lock->old_oid);
 	goto out;
@@ -1455,7 +1455,7 @@ static int files_copy_or_rename_ref(struct ref_store *ref_store,
 		goto out;
 	}
 
-	if (!refs_resolve_ref_unsafe(&refs->base, oldrefname,
+	if (!refs_resolve_ref_unsafe(&refs->base, oldrefname, NULL,
 				     RESOLVE_REF_READING | RESOLVE_REF_NO_RECURSE,
 				     &orig_oid, &flag)) {
 		ret = error("refname %s not found", oldrefname);
@@ -1501,7 +1501,7 @@ static int files_copy_or_rename_ref(struct ref_store *ref_store,
 	 * the safety anyway; we want to delete the reference whatever
 	 * its current value.
 	 */
-	if (!copy && refs_resolve_ref_unsafe(&refs->base, newrefname,
+	if (!copy && refs_resolve_ref_unsafe(&refs->base, newrefname, NULL,
 					     RESOLVE_REF_READING | RESOLVE_REF_NO_RECURSE,
 					     NULL, NULL) &&
 	    refs_delete_ref(&refs->base, NULL, newrefname,
@@ -1875,7 +1875,7 @@ static int commit_ref_update(struct files_ref_store *refs,
 		int head_flag;
 		const char *head_ref;
 
-		head_ref = refs_resolve_ref_unsafe(&refs->base, "HEAD",
+		head_ref = refs_resolve_ref_unsafe(&refs->base, "HEAD", NULL,
 						   RESOLVE_REF_READING,
 						   NULL, &head_flag);
 		if (head_ref && (head_flag & REF_ISSYMREF) &&
@@ -2464,7 +2464,7 @@ static int lock_ref_for_update(struct files_ref_store *refs,
 			 * to record and possibly check old_oid:
 			 */
 			if (!refs_resolve_ref_unsafe(&refs->base,
-						     referent.buf, 0,
+						     referent.buf, NULL, 0,
 						     &lock->old_oid, NULL)) {
 				if (update->flags & REF_HAVE_OLD) {
 					strbuf_addf(err, "cannot lock ref '%s': "
@@ -2823,7 +2823,7 @@ static int parse_and_write_reflog(struct files_ref_store *refs,
 		 * We want to get the resolved OID for the target, to ensure
 		 * that the correct value is added to the reflog.
 		 */
-		if (!refs_resolve_ref_unsafe(&refs->base, update->new_target,
+		if (!refs_resolve_ref_unsafe(&refs->base, update->new_target, NULL,
 					     RESOLVE_REF_READING,
 					     &update->new_oid, NULL)) {
 			/*
@@ -3229,7 +3229,7 @@ static int files_reflog_expire(struct ref_store *ref_store,
 			int type;
 			const char *ref;
 
-			ref = refs_resolve_ref_unsafe(&refs->base, refname,
+			ref = refs_resolve_ref_unsafe(&refs->base, refname, NULL,
 						      RESOLVE_REF_NO_RECURSE,
 						      NULL, &type);
 			update = !!(ref && !(type & REF_ISSYMREF));

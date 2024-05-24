@@ -574,6 +574,7 @@ static int show_head_ref(const char *refname, const struct object_id *oid,
 	if (flag & REF_ISSYMREF) {
 		const char *target = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
 							     refname,
+							     NULL,
 							     RESOLVE_REF_READING,
 							     NULL, NULL);
 

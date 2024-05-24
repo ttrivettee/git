@@ -520,7 +520,7 @@ static void read_config(struct repository *repo, int early)
 	repo->remote_state->current_branch = NULL;
 	if (startup_info->have_repository && !early) {
 		const char *head_ref = refs_resolve_ref_unsafe(
-			get_main_ref_store(repo), "HEAD", 0, NULL, &flag);
+			get_main_ref_store(repo), "HEAD", NULL, 0, NULL, &flag);
 		if (head_ref && (flag & REF_ISSYMREF) &&
 		    skip_prefix(head_ref, "refs/heads/", &head_ref)) {
 			repo->remote_state->current_branch = make_branch(
@@ -1201,7 +1201,7 @@ static char *guess_ref(const char *name, struct ref *peer)
 	struct strbuf buf = STRBUF_INIT;
 
 	const char *r = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-						peer->name,
+						peer->name, NULL,
 						RESOLVE_REF_READING,
 						NULL, NULL);
 	if (!r)
@@ -1321,7 +1321,7 @@ static int match_explicit(struct ref *src, struct ref *dst,
 		int flag;
 
 		dst_value = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-						    matched_src->name,
+						    matched_src->name, NULL,
 						    RESOLVE_REF_READING,
 						    NULL, &flag);
 		if (!dst_value ||

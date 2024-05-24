@@ -2920,7 +2920,7 @@ static void NORETURN diagnose_missing_default(const char *def)
 	const char *refname;
 
 	refname = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-					  def, 0, NULL, &flags);
+					  def, NULL, 0, NULL, &flags);
 	if (!refname || !(flags & REF_ISSYMREF) || (flags & REF_ISBROKEN))
 		die(_("your current branch appears to be broken"));
 

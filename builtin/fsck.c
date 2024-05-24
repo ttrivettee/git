@@ -716,7 +716,7 @@ static int fsck_head_link(const char *head_ref_name,
 		fprintf_ln(stderr, _("Checking %s link"), head_ref_name);
 
 	*head_points_at = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-						  head_ref_name, 0, head_oid,
+						  head_ref_name, NULL, 0, head_oid,
 						  NULL);
 	if (!*head_points_at) {
 		errors_found |= ERROR_REFS;

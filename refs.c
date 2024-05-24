@@ -378,7 +378,7 @@ char *refs_resolve_refdup(struct ref_store *refs,
 {
 	const char *result;
 
-	result = refs_resolve_ref_unsafe(refs, refname, resolve_flags,
+	result = refs_resolve_ref_unsafe(refs, refname, NULL, resolve_flags,
 					 oid, flags);
 	return xstrdup_or_null(result);
 }
@@ -394,7 +394,7 @@ struct for_each_ref_filter {
 int refs_read_ref_full(struct ref_store *refs, const char *refname,
 		       int resolve_flags, struct object_id *oid, int *flags)
 {
-	if (refs_resolve_ref_unsafe(refs, refname, resolve_flags,
+	if (refs_resolve_ref_unsafe(refs, refname, NULL, resolve_flags,
 				    oid, flags))
 		return 0;
 	return -1;
@@ -407,7 +407,7 @@ int refs_read_ref(struct ref_store *refs, const char *refname, struct object_id 
 
 int refs_ref_exists(struct ref_store *refs, const char *refname)
 {
-	return !!refs_resolve_ref_unsafe(refs, refname, RESOLVE_REF_READING,
+	return !!refs_resolve_ref_unsafe(refs, refname, NULL, RESOLVE_REF_READING,
 					 NULL, NULL);
 }
 
@@ -442,7 +442,7 @@ static int warn_if_dangling_symref(const char *refname,
 	if (!(flags & REF_ISSYMREF))
 		return 0;
 
-	resolves_to = refs_resolve_ref_unsafe(d->refs, refname, 0, NULL, NULL);
+	resolves_to = refs_resolve_ref_unsafe(d->refs, refname, NULL, 0, NULL, NULL);
 	if (!resolves_to
 	    || (d->refname
 		? strcmp(resolves_to, d->refname)
@@ -716,7 +716,7 @@ int expand_ref(struct repository *repo, const char *str, int len,
 		this_result = refs_found ? &oid_from_ref : oid;
 		strbuf_reset(&fullref);
 		strbuf_addf(&fullref, *p, len, str);
-		r = refs_resolve_ref_unsafe(refs, fullref.buf,
+		r = refs_resolve_ref_unsafe(refs, fullref.buf, NULL,
 					    RESOLVE_REF_READING,
 					    this_result, &flag);
 		if (r) {
@@ -750,7 +750,7 @@ int repo_dwim_log(struct repository *r, const char *str, int len,
 
 		strbuf_reset(&path);
 		strbuf_addf(&path, *p, len, str);
-		ref = refs_resolve_ref_unsafe(refs, path.buf,
+		ref = refs_resolve_ref_unsafe(refs, path.buf, NULL,
 					      RESOLVE_REF_READING,
 					      oid ? &hash : NULL, NULL);
 		if (!ref)
@@ -1522,7 +1522,7 @@ int refs_head_ref(struct ref_store *refs, each_ref_fn fn, void *cb_data)
 	struct object_id oid;
 	int flag;
 
-	if (refs_resolve_ref_unsafe(refs, "HEAD", RESOLVE_REF_READING,
+	if (refs_resolve_ref_unsafe(refs, "HEAD", NULL, RESOLVE_REF_READING,
 				    &oid, &flag))
 		return fn("HEAD", &oid, flag, cb_data);
 
@@ -1761,6 +1761,7 @@ int refs_read_symbolic_ref(struct ref_store *ref_store, const char *refname,
 
 const char *refs_resolve_ref_unsafe(struct ref_store *refs,
 				    const char *refname,
+				    const char *referent,
 				    int resolve_flags,
 				    struct object_id *oid,
 				    int *flags)
@@ -1822,6 +1823,9 @@ const char *refs_resolve_ref_unsafe(struct ref_store *refs,
 		}
 
 		*flags |= read_flags;
+		if (referent && (read_flags & REF_ISSYMREF) &&
+		    sb_refname.len > 0)
+			referent = sb_refname.buf;
 
 		if (!(read_flags & REF_ISSYMREF)) {
 			if (*flags & REF_BAD_NAME) {
@@ -1865,7 +1869,7 @@ int repo_resolve_gitlink_ref(struct repository *r,
 	if (!refs)
 		return -1;
 
-	if (!refs_resolve_ref_unsafe(refs, refname, 0, oid, &flags) ||
+	if (!refs_resolve_ref_unsafe(refs, refname, NULL, 0, oid, &flags) ||
 	    is_null_oid(oid))
 		return -1;
 	return 0;

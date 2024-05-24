@@ -1291,7 +1291,7 @@ static int find_symref(const char *refname,
 	if ((flag & REF_ISSYMREF) == 0)
 		return 0;
 	symref_target = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-						refname, 0, NULL, &flag);
+						refname, NULL, 0, NULL, &flag);
 	if (!symref_target || (flag & REF_ISSYMREF) == 0)
 		die("'%s' is a symref but it is not?", refname);
 	item = string_list_append(cb_data, strip_namespace(refname));

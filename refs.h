@@ -68,6 +68,7 @@ const char *ref_storage_format_to_name(unsigned int ref_storage_format);
 
 const char *refs_resolve_ref_unsafe(struct ref_store *refs,
 				    const char *refname,
+				    const char *referent,
 				    int resolve_flags,
 				    struct object_id *oid,
 				    int *flags);

@@ -599,7 +599,7 @@ static int read_remote_branches(const char *refname,
 	if (starts_with(refname, buf.buf)) {
 		item = string_list_append(rename->remote_branches, refname);
 		symref = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-						 refname, RESOLVE_REF_READING,
+						 refname, NULL, RESOLVE_REF_READING,
 						 NULL, &flag);
 		if (symref && (flag & REF_ISSYMREF)) {
 			item->util = xstrdup(symref);
