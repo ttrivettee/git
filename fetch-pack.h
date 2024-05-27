@@ -101,4 +101,6 @@ void negotiate_using_fetch(const struct oid_array *negotiation_tips,
  */
 int report_unmatched_refs(struct ref **sought, int nr_sought);
 
+int fetch_pack_fsck_objects(void);
+
 #endif
