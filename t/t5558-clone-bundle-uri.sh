@@ -19,13 +19,30 @@ test_expect_success 'fail to clone from non-bundle file' '
 
 test_expect_success 'create bundle' '
 	git init clone-from &&
-	git -C clone-from checkout -b topic &&
+	(
+		cd clone-from &&
+		git checkout -b topic &&
 
-	test_commit -C clone-from A &&
-	git -C clone-from bundle create A.bundle topic &&
+		test_commit A &&
+		git bundle create A.bundle topic &&
 
-	test_commit -C clone-from B &&
-	git -C clone-from bundle create B.bundle topic
+		test_commit B &&
+		git bundle create B.bundle topic &&
+
+		cat >data <<-EOF &&
+		tree $(git rev-parse HEAD^{tree})
+		parent $(git rev-parse HEAD)
+		author A U Thor
+		committer A U Thor
+
+		commit: this is a commit with bad emails
+
+		EOF
+		git hash-object --literally -t commit -w --stdin <data >commit &&
+		git branch bad $(cat commit) &&
+		git bundle create bad.bundle bad &&
+		git update-ref -d refs/heads/bad
+	)
 '
 
 test_expect_success 'clone with path bundle' '
@@ -34,6 +51,15 @@ test_expect_success 'clone with path bundle' '
 	git -C clone-path rev-parse refs/bundles/topic >actual &&
 	git -C clone-from rev-parse topic >expect &&
 	test_cmp expect actual
+'
+
+test_expect_success 'clone with bad bundle' '
+	git -c fetch.fsckObjects=true clone --bundle-uri="clone-from/bad.bundle" \
+		clone-from clone-bad 2>err &&
+	# Unbundle fails, but clone can still proceed.
+	test_grep "missingEmail" err &&
+	git -C clone-bad for-each-ref --format="%(refname)" >refs &&
+	! grep "refs/bundles/" refs
 '
 
 test_expect_success 'clone with path bundle and non-default hash' '

@@ -33,6 +33,7 @@ int create_bundle(struct repository *r, const char *path,
 enum unbundle_fsck_flags {
 	UNBUNDLE_FSCK_NEVER = 0,
 	UNBUNDLE_FSCK_ALWAYS,
+	UNBUNDLE_FSCK_FOLLOW_FETCH,
 };
 
 enum verify_bundle_flags {

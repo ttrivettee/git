@@ -17,6 +17,7 @@
 #include "list-objects-filter-options.h"
 #include "connected.h"
 #include "write-or-die.h"
+#include "fetch-pack.h"
 
 static const char v2_bundle_signature[] = "# v2 git bundle\n";
 static const char v3_bundle_signature[] = "# v3 git bundle\n";
@@ -616,6 +617,7 @@ int unbundle(struct repository *r, struct bundle_header *header,
 	     enum unbundle_fsck_flags fsck_flags)
 {
 	struct child_process ip = CHILD_PROCESS_INIT;
+	int fsck_objects = 0;
 
 	if (verify_bundle(r, header, flags))
 		return -1;
@@ -628,12 +630,18 @@ int unbundle(struct repository *r, struct bundle_header *header,
 
 	switch (fsck_flags) {
 	case UNBUNDLE_FSCK_ALWAYS:
-		strvec_push(&ip.args, "--fsck-objects");
+		fsck_objects = 1;
+		break;
+	case UNBUNDLE_FSCK_FOLLOW_FETCH:
+		fsck_objects = fetch_pack_fsck_objects();
 		break;
 	case UNBUNDLE_FSCK_NEVER:
 	default:
 		break;
 	}
+
+	if (fsck_objects)
+		strvec_push(&ip.args, "--fsck-objects");
 
 	if (extra_index_pack_args) {
 		strvec_pushv(&ip.args, extra_index_pack_args->v);
