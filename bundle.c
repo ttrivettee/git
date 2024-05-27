@@ -612,7 +612,8 @@ err:
 
 int unbundle(struct repository *r, struct bundle_header *header,
 	     int bundle_fd, struct strvec *extra_index_pack_args,
-	     enum verify_bundle_flags flags)
+	     enum verify_bundle_flags flags,
+	     enum unbundle_fsck_flags fsck_flags)
 {
 	struct child_process ip = CHILD_PROCESS_INIT;
 
@@ -624,6 +625,15 @@ int unbundle(struct repository *r, struct bundle_header *header,
 	/* If there is a filter, then we need to create the promisor pack. */
 	if (header->filter.choice)
 		strvec_push(&ip.args, "--promisor=from-bundle");
+
+	switch (fsck_flags) {
+	case UNBUNDLE_FSCK_ALWAYS:
+		strvec_push(&ip.args, "--fsck-objects");
+		break;
+	case UNBUNDLE_FSCK_NEVER:
+	default:
+		break;
+	}
 
 	if (extra_index_pack_args) {
 		strvec_pushv(&ip.args, extra_index_pack_args->v);

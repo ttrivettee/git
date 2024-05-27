@@ -30,6 +30,11 @@ int create_bundle(struct repository *r, const char *path,
 		  int argc, const char **argv, struct strvec *pack_options,
 		  int version);
 
+enum unbundle_fsck_flags {
+	UNBUNDLE_FSCK_NEVER = 0,
+	UNBUNDLE_FSCK_ALWAYS,
+};
+
 enum verify_bundle_flags {
 	VERIFY_BUNDLE_VERBOSE = (1 << 0),
 	VERIFY_BUNDLE_QUIET = (1 << 1),
@@ -53,7 +58,8 @@ int verify_bundle(struct repository *r, struct bundle_header *header,
  */
 int unbundle(struct repository *r, struct bundle_header *header,
 	     int bundle_fd, struct strvec *extra_index_pack_args,
-	     enum verify_bundle_flags flags);
+	     enum verify_bundle_flags flags,
+	     enum unbundle_fsck_flags fsck_flags);
 int list_bundle_refs(struct bundle_header *header,
 		int argc, const char **argv);
 
