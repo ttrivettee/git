@@ -908,7 +908,7 @@ int parse_date_basic(const char *date, timestamp_t *timestamp, int *offset)
 			match = match_alpha(date, &tm, offset);
 		else if (isdigit(c))
 			match = match_digit(date, &tm, offset, &tm_gmt);
-		else if ((c == '-' || c == '+') && isdigit(date[1]))
+		else if ((c == '-' || c == '+') && isdigit(date[1]) && tm.tm_hour != -1)
 			match = match_tz(date, offset);
 
 		if (!match) {
@@ -937,8 +937,13 @@ int parse_date_basic(const char *date, timestamp_t *timestamp, int *offset)
 		}
 	}
 
-	if (!tm_gmt)
+	if (!tm_gmt) {
+		if (*offset > 0 && *offset * 60 > *timestamp) {
+			return -1;
+		}
 		*timestamp -= *offset * 60;
+	}
+
 	return 0; /* success */
 }
 
