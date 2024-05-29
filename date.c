@@ -937,8 +937,12 @@ int parse_date_basic(const char *date, timestamp_t *timestamp, int *offset)
 		}
 	}
 
-	if (!tm_gmt)
+	if (!tm_gmt) {
+		if (*offset > 0 && *offset * 60 > *timestamp)
+			return -1;
 		*timestamp -= *offset * 60;
+	}
+
 	return 0; /* success */
 }
 
