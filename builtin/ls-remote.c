@@ -9,7 +9,7 @@
 #include "wildmatch.h"
 
 static const char * const ls_remote_usage[] = {
-	N_("git ls-remote [--heads] [--tags] [--refs] [--upload-pack=<exec>]\n"
+	N_("git ls-remote [--branches] [--tags] [--refs] [--upload-pack=<exec>]\n"
 	   "              [-q | --quiet] [--exit-code] [--get-url] [--sort=<key>]\n"
 	   "              [--symref] [<repository> [<patterns>...]]"),
 	NULL
@@ -35,6 +35,20 @@ static int tail_match(const char **pattern, const char *path)
 		}
 	}
 	free(pathbuf);
+	return 0;
+}
+
+static int heads_callback(const struct option *opt, const char *arg, int unset)
+{
+	unsigned *flags = opt->value;
+
+	if (unset) {
+		warning(_("'--no-heads' is deprecated; use '--no-branches' instead"));
+		*flags &= ~REF_BRANCHES;
+	} else {
+		warning(_("'--heads' is deprecated; use '--branches' instead"));
+		*flags |= REF_BRANCHES;
+	}
 	return 0;
 }
 
@@ -68,7 +82,12 @@ int cmd_ls_remote(int argc, const char **argv, const char *prefix)
 			   N_("path of git-upload-pack on the remote host"),
 			   PARSE_OPT_HIDDEN },
 		OPT_BIT('t', "tags", &flags, N_("limit to tags"), REF_TAGS),
-		OPT_BIT('h', "heads", &flags, N_("limit to heads"), REF_BRANCHES),
+		OPT_BIT('b', "branches", &flags, N_("limit to branches"), REF_BRANCHES),
+		OPT_CALLBACK_F('h', "heads", &flags,
+			       NULL,
+			       N_("deprecated synonym for --branches"),
+			       PARSE_OPT_NOARG|PARSE_OPT_HIDDEN,
+			       &heads_callback),
 		OPT_BIT(0, "refs", &flags, N_("do not show peeled tags"), REF_NORMAL),
 		OPT_BOOL(0, "get-url", &get_url,
 			 N_("take url.<base>.insteadOf into account")),
