@@ -74,14 +74,13 @@ static int core_pager_config(const char *var, const char *value,
 	return 0;
 }
 
-const char *git_pager(int stdout_is_tty)
+static const char *git_pager_custom(int stdout_is_tty, const char* pager)
 {
-	const char *pager;
-
 	if (!stdout_is_tty)
 		return NULL;
 
-	pager = getenv("GIT_PAGER");
+	if (!pager || !*pager)
+		pager = getenv("GIT_PAGER");
 	if (!pager) {
 		if (!pager_program)
 			read_early_config(core_pager_config, NULL);
@@ -95,6 +94,11 @@ const char *git_pager(int stdout_is_tty)
 		pager = NULL;
 
 	return pager;
+}
+
+const char *git_pager(int stdout_is_tty)
+{
+	return git_pager_custom(stdout_is_tty, NULL);
 }
 
 static void setup_pager_env(struct strvec *env)
@@ -132,10 +136,11 @@ void prepare_pager_args(struct child_process *pager_process, const char *pager)
 	pager_process->trace2_child_class = "pager";
 }
 
-void setup_pager(void)
+void setup_custom_pager(const char* pager)
 {
 	static int once = 0;
-	const char *pager = git_pager(isatty(1));
+
+	pager = git_pager_custom(isatty(1), pager);
 
 	if (!pager)
 		return;
