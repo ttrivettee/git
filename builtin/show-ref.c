@@ -11,8 +11,8 @@
 
 static const char * const show_ref_usage[] = {
 	N_("git show-ref [--head] [-d | --dereference]\n"
-	   "             [-s | --hash[=<n>]] [--abbrev[=<n>]] [--tags]\n"
-	   "             [--heads] [--] [<pattern>...]"),
+	   "             [-s | --hash[=<n>]] [--abbrev[=<n>]] [--branches] [--tags]\n"
+	   "             [--] [<pattern>...]"),
 	N_("git show-ref --verify [-q | --quiet] [-d | --dereference]\n"
 	   "             [-s | --hash[=<n>]] [--abbrev[=<n>]]\n"
 	   "             [--] [<ref>...]"),
@@ -188,7 +188,7 @@ static int cmd_show_ref__verify(const struct show_one_options *show_one_opts,
 
 struct patterns_options {
 	int show_head;
-	int heads_only;
+	int branches_only;
 	int tags_only;
 };
 
@@ -206,8 +206,8 @@ static int cmd_show_ref__patterns(const struct patterns_options *opts,
 
 	if (opts->show_head)
 		head_ref(show_ref, &show_ref_data);
-	if (opts->heads_only || opts->tags_only) {
-		if (opts->heads_only)
+	if (opts->branches_only || opts->tags_only) {
+		if (opts->branches_only)
 			for_each_fullref_in("refs/heads/", show_ref, &show_ref_data);
 		if (opts->tags_only)
 			for_each_fullref_in("refs/tags/", show_ref, &show_ref_data);
@@ -279,6 +279,20 @@ static int exclude_existing_callback(const struct option *opt, const char *arg,
 	return 0;
 }
 
+static int heads_callback(const struct option *opt, const char *arg, int unset)
+{
+	int *branches_only = opt->value;
+
+	if (unset) {
+		warning(_("'--no-heads' is deprecated; use '--no-branches' instead"));
+		*branches_only = 0;
+	} else {
+		warning(_("'--heads' is deprecated; use '--branches' instead"));
+		*branches_only = 1;
+	}
+	return 0;
+}
+
 int cmd_show_ref(int argc, const char **argv, const char *prefix)
 {
 	struct exclude_existing_options exclude_existing_opts = {0};
@@ -286,8 +300,13 @@ int cmd_show_ref(int argc, const char **argv, const char *prefix)
 	struct show_one_options show_one_opts = {0};
 	int verify = 0, exists = 0;
 	const struct option show_ref_options[] = {
-		OPT_BOOL(0, "tags", &patterns_opts.tags_only, N_("only show tags (can be combined with heads)")),
-		OPT_BOOL(0, "heads", &patterns_opts.heads_only, N_("only show heads (can be combined with tags)")),
+		OPT_BOOL(0, "tags", &patterns_opts.tags_only, N_("only show tags (can be combined with branches)")),
+		OPT_BOOL(0, "branches", &patterns_opts.branches_only, N_("only show branches (can be combined with tags)")),
+		OPT_CALLBACK_F(0, "heads", &patterns_opts.branches_only,
+			       NULL,
+			       N_("deprecated synonym for --branches)"),
+			       PARSE_OPT_NOARG|PARSE_OPT_HIDDEN,
+			       &heads_callback),
 		OPT_BOOL(0, "exists", &exists, N_("check for reference existence without resolving")),
 		OPT_BOOL(0, "verify", &verify, N_("stricter reference checking, "
 			    "requires exact ref path")),
