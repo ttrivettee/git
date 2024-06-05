@@ -272,6 +272,7 @@ struct add_p_state {
 	/* patch mode */
 	struct patch_mode *mode;
 	const char *revision;
+	char *custom_pager;
 };
 
 static void add_p_state_clear(struct add_p_state *s)
@@ -285,6 +286,7 @@ static void add_p_state_clear(struct add_p_state *s)
 	for (i = 0; i < s->file_diff_nr; i++)
 		free(s->file_diff[i].hunk);
 	free(s->file_diff);
+	free(s->custom_pager);
 	clear_add_i_state(&s->s);
 }
 
@@ -1403,7 +1405,7 @@ static int patch_update_file(struct add_p_state *s,
 	struct child_process cp = CHILD_PROCESS_INIT;
 	int colored = !!s->colored.len, quit = 0;
 	enum prompt_mode_type prompt_mode_type;
-	const char* pager = NULL;
+	int use_pager = 0;
 	enum {
 		ALLOW_GOTO_PREVIOUS_HUNK = 1 << 0,
 		ALLOW_GOTO_PREVIOUS_UNDECIDED_HUNK = 1 << 1,
@@ -1452,14 +1454,14 @@ static int patch_update_file(struct add_p_state *s,
 		strbuf_reset(&s->buf);
 		if (file_diff->hunk_nr) {
 			if (rendered_hunk_index != hunk_index) {
-				if (pager)
-					setup_custom_pager(pager);
+				if (use_pager)
+					setup_custom_pager(s->custom_pager);
 				render_hunk(s, hunk, 0, colored, &s->buf);
 				fputs(s->buf.buf, stdout);
 				rendered_hunk_index = hunk_index;
-				if (pager) {
+				if (use_pager) {
 					wait_for_pager();
-					pager = NULL;
+					use_pager = 0;
 				}
 			}
 
@@ -1685,15 +1687,26 @@ soft_increment:
 		} else if (s->answer.buf[0] == 'p') {
 			rendered_hunk_index = -1;
 		} else if (ch == '|') {
-			strbuf_remove(&s->answer, 0, 1);
-			if (s->s.use_single_key && s->answer.len == 0) {
+			if (!s->s.use_single_key) {
+				strbuf_remove(&s->answer, 0, 1);
+			} else {
 				printf("%s", _("program? "));
 				fflush(stdout);
 				strbuf_getline(&s->answer, stdin);
-				strbuf_trim_trailing_newline(&s->answer);
 			}
-			strbuf_trim(&s->answer);
-			pager = s->answer.buf;
+			strbuf_trim_trailing_newline(&s->answer);
+
+			if (!s->answer.len)
+				; /* empty input - reuse the previous */
+			else {
+				strbuf_trim(&s->answer);
+				FREE_AND_NULL(s->custom_pager);
+				if (!s->answer.len)
+					; /* semi-empty - use your pager */
+				else
+					s->custom_pager = xstrdup(s->answer.buf);
+			}
+			use_pager = 1;
 			rendered_hunk_index = -1;
 		} else if (s->answer.buf[0] == '?') {
 			const char *p = _(help_patch_remainder), *eol = p;
