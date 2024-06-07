@@ -95,6 +95,7 @@ int max_allowed_tree_depth =
 #else
 	2048;
 #endif
+int max_symlink_depth = -1;
 
 #ifndef PROTECT_HFS_DEFAULT
 #define PROTECT_HFS_DEFAULT 0

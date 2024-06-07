@@ -1682,6 +1682,11 @@ static int git_default_core_config(const char *var, const char *value,
 		return 0;
 	}
 
+	if (!strcmp(var, "core.maxsymlinkdepth")) {
+		max_symlink_depth = git_config_int(var, value, ctx->kvi);
+		return 0;
+	}
+
 	/* Add other config variables here and to Documentation/config.txt. */
 	return platform_core_config(var, value, ctx, cb);
 }
