@@ -821,6 +821,17 @@ enum get_oid_result get_tree_entry_follow_symlinks(struct repository *r,
 			contents_start = contents;
 
 			parent = &parents[parents_nr - 1];
+
+			if (follows_remaining == 0 &&
+			    symlink_resolution_mode ==
+				    SYMLINK_RESOLUTION_MODE_BEST_EFFORT) {
+				strbuf_addstr(result_path, contents);
+				oidcpy(result, &current_tree_oid);
+				free(contents);
+				retval = FOUND;
+				goto done;
+			}
+
 			init_tree_desc(&t, &parent->oid, parent->tree, parent->size);
 			strbuf_splice(&namebuf, 0, len,
 				      contents_start, link_len);

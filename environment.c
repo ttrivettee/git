@@ -96,6 +96,8 @@ int max_allowed_tree_depth =
 	2048;
 #endif
 int max_symlink_depth = -1;
+enum symlink_resolution_mode symlink_resolution_mode =
+	SYMLINK_RESOLUTION_MODE_ERROR;
 
 #ifndef PROTECT_HFS_DEFAULT
 #define PROTECT_HFS_DEFAULT 0

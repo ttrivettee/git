@@ -143,6 +143,13 @@ extern unsigned long pack_size_limit_cfg;
 extern int max_allowed_tree_depth;
 extern int max_symlink_depth;
 
+enum symlink_resolution_mode {
+	SYMLINK_RESOLUTION_MODE_ERROR = 0,
+	SYMLINK_RESOLUTION_MODE_BEST_EFFORT
+};
+
+extern enum symlink_resolution_mode symlink_resolution_mode;
+
 /*
  * Accessors for the core.sharedrepository config which lazy-load the value
  * from the config (if not already set). The "reset" function can be

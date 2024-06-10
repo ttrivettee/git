@@ -762,3 +762,17 @@ core.maxSymlinkDepth::
 	The maximum number of symlinks Git is willing to resolve while
 	looking for a tree entry.
 	The default is GET_TREE_ENTRY_FOLLOW_SYMLINKS_MAX_LINKS.
+
+core.symlinkResolutionMode::
+	The result returned by the symlink resolution process when
+	core.maxSymlinkDepth is reached. When set to "error"
+	`
+	loop SP <size> LF
+	<object> LF
+	` is returned.
+	If `best-effort` is set, the resolution process will return
+	something like:
+	`
+	<oid> blob <size> 120000\nname\n
+	`
+	The default is "error".
