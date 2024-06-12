@@ -13,7 +13,7 @@ use warnings;
 # handle ACL in file access tests
 use filetest 'access';
 use CGI qw(:standard :escapeHTML -nosticky);
-use CGI::Util qw(unescape);
+use CGI::Util qw();
 use CGI::Carp qw(fatalsToBrowser set_message);
 use Encode;
 use Fcntl ':mode';
@@ -21,6 +21,11 @@ use File::Find qw();
 use File::Basename qw(basename);
 use Time::HiRes qw(gettimeofday tv_interval);
 use Digest::MD5 qw(md5_hex);
+
+sub unescape {
+	my $url = shift;
+	return CGI::Util->unescape($url);
+}
 
 binmode STDOUT, ':utf8';
 
