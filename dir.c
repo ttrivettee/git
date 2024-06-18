@@ -3142,6 +3142,12 @@ int file_exists(const char *f)
 	return lstat(f, &sb) == 0;
 }
 
+int file_exists_as_file(const char *path)
+{
+	struct stat st;
+	return lstat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+
 int repo_file_exists(struct repository *repo, const char *path)
 {
 	if (repo != the_repository)

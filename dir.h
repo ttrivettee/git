@@ -475,6 +475,7 @@ void dir_clear(struct dir_struct *dir);
 
 int repo_file_exists(struct repository *repo, const char *path);
 int file_exists(const char *);
+int file_exists_as_file(const char *);
 
 int is_inside_dir(const char *dir);
 int dir_inside_of(const char *subdir, const char *dir);

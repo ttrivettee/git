@@ -801,7 +801,7 @@ static void config_from_gitmodules(config_fn_t fn, struct repository *repo, void
 		char *oidstr = NULL;
 
 		file = repo_worktree_path(repo, GITMODULES_FILE);
-		if (file_exists(file)) {
+		if (file_exists_as_file(file)) {
 			config_source.file = file;
 		} else if (repo_get_oid(repo, GITMODULES_INDEX, &oid) >= 0 ||
 			   repo_get_oid(repo, GITMODULES_HEAD, &oid) >= 0) {
