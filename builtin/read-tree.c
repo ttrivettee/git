@@ -6,6 +6,7 @@
 
 #include "builtin.h"
 #include "config.h"
+#include "environment.h"
 #include "gettext.h"
 #include "hex.h"
 #include "lockfile.h"
@@ -65,7 +66,7 @@ static int exclude_per_directory_cb(const struct option *opt, const char *arg,
 
 	if (!opts->update)
 		die("--exclude-per-directory is meaningless unless -u");
-	if (strcmp(arg, ".gitignore"))
+	if (strcmp(arg, GITIGNORE_FILE))
 		die("--exclude-per-directory argument must be .gitignore");
 	return 0;
 }

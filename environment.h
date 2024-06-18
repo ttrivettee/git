@@ -43,6 +43,7 @@ const char *getenv_safe(struct strvec *argv, const char *name);
 #define GITMODULES_FILE ".gitmodules"
 #define GITMODULES_INDEX ":.gitmodules"
 #define GITMODULES_HEAD "HEAD:.gitmodules"
+#define GITIGNORE_FILE ".gitignore"
 #define GIT_NOTES_REF_ENVIRONMENT "GIT_NOTES_REF"
 #define GIT_NOTES_DEFAULT_REF "refs/notes/commits"
 #define GIT_NOTES_DISPLAY_REF_ENVIRONMENT "GIT_NOTES_DISPLAY_REF"
