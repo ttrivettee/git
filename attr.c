@@ -747,6 +747,11 @@ static struct attr_stack *read_attr_from_file(const char *path, unsigned flags)
 		fclose(fp);
 		return NULL;
 	}
+	if (S_ISDIR(st.st_mode)) {
+		/* On FREAD_READS_DIRECTORIES platforms */
+		fclose(fp);
+		return NULL;
+	}
 	if (st.st_size >= ATTR_MAX_FILE_SIZE) {
 		warning(_("ignoring overly large gitattributes file '%s'"), path);
 		fclose(fp);
@@ -760,7 +765,10 @@ static struct attr_stack *read_attr_from_file(const char *path, unsigned flags)
 		handle_attr_line(res, buf.buf, path, ++lineno, flags);
 	}
 
-	fclose(fp);
+	if (ferror(fp))
+		warning_errno(_("failed while reading gitattributes file '%s'"), path);
+	if (fclose(fp))
+		warning_errno(_("cannot fclose gitattributes file '%s'"), path);
 	strbuf_release(&buf);
 	return res;
 }

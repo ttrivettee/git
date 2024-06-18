@@ -603,6 +603,15 @@ test_expect_success EXPENSIVE 'large attributes blob ignored' '
 	test_cmp expect err
 '
 
+test_expect_success '.gitattribute directory behaves as if it does not exist' '
+	test_when_finished "rm -fr dir" &&
+	mkdir -p dir/.gitattributes &&
+	>dir/ectory &&
+	git -C dir check-attr --all ectory >out 2>err &&
+	test_grep ! "failed while reading" err &&
+	test_grep ! "cannot fclose" err
+'
+
 test_expect_success 'builtin object mode attributes work (dir and regular paths)' '
 	>normal &&
 	attr_check_object_mode normal 100644 &&
