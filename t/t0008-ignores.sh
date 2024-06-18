@@ -953,4 +953,22 @@ test_expect_success EXPENSIVE 'large exclude file ignored in tree' '
 	test_cmp expect err
 '
 
+test_expect_success POSIXPERM 'unreadable exclude file reported' '
+	test_when_finished "rm -f .gitignore" &&
+	>.gitignore &&
+	chmod a= .gitignore &&
+	# we do not care if the pattern matches
+	{ git check-ignore xyzzy 2>err || :; } &&
+	test_grep "unable to access ${SQ}\.gitignore${SQ}:" err
+'
+
+test_expect_success '.gitignore directory ignored' '
+	test_when_finished "rm -rf .gitignore" &&
+	rm -f .gitignore &&
+	mkdir .gitignore &&
+	# we do not care if the pattern matches
+	{ git check-ignore xyzzy 2>err || :; } &&
+	test_grep ! "failed while reading gitignore file ${SQ}\.gitignore${SQ}:" err
+'
+
 test_done

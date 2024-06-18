@@ -1127,6 +1127,10 @@ static int add_patterns(const char *fname, const char *base, int baselen,
 						       oid_stat);
 		if (r != 1)
 			return r;
+	} else if (S_ISDIR(st.st_mode)) {
+		/* On FREAD_READS_DIRECTORIES platforms */
+		close(fd);
+		return 0;
 	} else {
 		size = xsize_t(st.st_size);
 		if (size == 0) {
@@ -1140,6 +1144,8 @@ static int add_patterns(const char *fname, const char *base, int baselen,
 		}
 		buf = xmallocz(size);
 		if (read_in_full(fd, buf, size) != size) {
+			warning_errno(_("failed while reading gitignore file '%s'"),
+				      fname);
 			free(buf);
 			close(fd);
 			return -1;
