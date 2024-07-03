@@ -12,6 +12,21 @@
 #include "config.h"
 #include "dir.h"
 #include "fsmonitor-ll.h"
+#include "advice.h"
+
+/**
+ * This global is used by expand_index() to determine if we should give the
+ * advice for advice.sparseIndexExpanded when expanding a sparse index to a full
+ * one. However, this is sometimes done on purpose, such as in the sparse-checkout
+ * builtin, even when index.sparse=false. This may be disabled in
+ * convert_to_sparse().
+ */
+static int give_advice_on_expansion = 1;
+#define ADVICE_MSG \
+	"The sparse index is expanding to a full index, a slow operation.\n" \
+	"This likely means that you have files in your working directory\n"  \
+	"that are outside of your sparse-checkout patterns. Remove them\n"   \
+	"to recover performance expectations, such as with 'git clean'."
 
 struct modify_index_context {
 	struct index_state *write;
@@ -184,6 +199,12 @@ int convert_to_sparse(struct index_state *istate, int flags)
 		return 0;
 
 	/*
+	 * If we are purposefully collapsing a full index, then don't give
+	 * advice when it is expanded later.
+	 */
+	give_advice_on_expansion = 0;
+
+	/*
 	 * NEEDSWORK: If we have unmerged entries, then stay full.
 	 * Unmerged entries prevent the cache-tree extension from working.
 	 */
@@ -326,6 +347,12 @@ void expand_index(struct index_state *istate, struct pattern_list *pl)
 		 */
 		if (cache_tree_update(istate, 0))
 			pl = NULL;
+	}
+
+	if (!pl && give_advice_on_expansion) {
+		give_advice_on_expansion = 0;
+		advise_if_enabled(ADVICE_SPARSE_INDEX_EXPANDED,
+				  _(ADVICE_MSG));
 	}
 
 	/*
