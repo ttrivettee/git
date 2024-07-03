@@ -1164,4 +1164,15 @@ test_expect_success 'reset -p with unmerged files' '
 	test_must_be_empty staged
 '
 
+test_expect_success 'hunk splitting works with diff.suppressBlankEmpty' '
+	test_config diff.suppressBlankEmpty true &&
+	test_write_lines a b c "" d e f >file &&
+	git add file &&
+	test_write_lines p q r "" s t u >file &&
+	test_write_lines s n y q | git add -p &&
+	git cat-file blob :file >actual &&
+	test_write_lines a b c "" s t u >expect &&
+	test_cmp expect actual
+'
+
 test_done
