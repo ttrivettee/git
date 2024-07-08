@@ -373,6 +373,10 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 		goto cleanup;
 	}
 
+	/*
+	 * FIXME: This reads various config variables,
+	 * which 'replay' should ignore as a plumbing command
+	 */
 	init_merge_options(&merge_opt, the_repository);
 	memset(&result, 0, sizeof(result));
 	merge_opt.show_rename_progress = 0;

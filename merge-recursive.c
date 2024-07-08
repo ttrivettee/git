@@ -3930,6 +3930,13 @@ static void merge_recursive_config(struct merge_options *opt)
 		} /* avoid erroring on values from future versions of git */
 		free(value);
 	}
+	if (!git_config_get_string("diff.algorithm", &value)) {
+		long diff_algorithm = parse_algorithm_value(value);
+		if (diff_algorithm < 0)
+			die(_("unknown value for config '%s': %s"), "diff.algorithm", value);
+		opt->xdl_opts = (opt->xdl_opts & ~XDF_DIFF_ALGORITHM_MASK) | diff_algorithm;
+		free(value);
+	}
 	git_config(git_xmerge_config, NULL);
 }
 
