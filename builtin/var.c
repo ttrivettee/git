@@ -51,7 +51,13 @@ static char *default_branch(int ident_flag UNUSED)
 
 static char *shell_path(int ident_flag UNUSED)
 {
+#ifdef WIN32
+	char *p = locate_in_PATH("sh");
+	convert_slashes(p);
+	return p;
+#else
 	return xstrdup(SHELL_PATH);
+#endif
 }
 
 static char *git_attr_val_system(int ident_flag UNUSED)
