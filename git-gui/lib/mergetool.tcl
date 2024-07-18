@@ -272,8 +272,15 @@ proc merge_resolve_tool2 {} {
 		}
 	}
 	default {
-		error_popup [mc "Unsupported merge tool '%s'" $tool]
-		return
+		if {[is_config_true gui.mergetoolfromconfig]} {
+			set path [get_config mergetool.$tool.path]
+			set cmdline_config [get_config mergetool.$tool.cmd]
+			set cmdline_substituted [subst -nobackslashes -nocommands $cmdline_config]
+			set cmdline [lreplace $cmdline_substituted 0 0 $path]
+		} else {
+			error_popup [mc "Unsupported merge tool '%s'" $tool]
+			return
+		}
 	}
 	}
 
