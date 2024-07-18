@@ -272,8 +272,14 @@ proc merge_resolve_tool2 {} {
 		}
 	}
 	default {
-		error_popup [mc "Unsupported merge tool '%s'" $tool]
-		return
+		set tool_cmd [get_config mergetool.$tool.cmd]
+		if {$tool_cmd ne {}} {
+			set tool_cmd_file_vars_resolved [subst -nobackslashes -nocommands $tool_cmd]
+			set cmdline [lreplace $tool_cmd_file_vars_resolved 0 0 $merge_tool_path]
+		} else {
+			error_popup [mc "Unsupported merge tool '%s'. Is the tool command and path configured properly in gitconfig?" $tool]
+			return
+		}
 	}
 	}
 
