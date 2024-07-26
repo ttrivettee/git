@@ -1265,7 +1265,13 @@ static CURL *get_curl_handle(void)
 		if (!proxy_auth.host)
 			die("Invalid proxy URL '%s'", curl_http_proxy);
 
-		curl_easy_setopt(result, CURLOPT_PROXY, proxy_auth.host);
+		if (proxy_auth.path) {
+			struct strbuf proxy = STRBUF_INIT;
+			strbuf_addf(&proxy, "%s/%s", proxy_auth.host, proxy_auth.path);
+			curl_easy_setopt(result, CURLOPT_PROXY, proxy.buf);
+			strbuf_release(&proxy);
+		} else
+			curl_easy_setopt(result, CURLOPT_PROXY, proxy_auth.host);
 		var_override(&curl_no_proxy, getenv("NO_PROXY"));
 		var_override(&curl_no_proxy, getenv("no_proxy"));
 		curl_easy_setopt(result, CURLOPT_NOPROXY, curl_no_proxy);
