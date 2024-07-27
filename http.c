@@ -1227,6 +1227,7 @@ static CURL *get_curl_handle(void)
 		 */
 		curl_easy_setopt(result, CURLOPT_PROXY, "");
 	} else if (curl_http_proxy) {
+		struct strbuf proxy = STRBUF_INIT;
 		if (starts_with(curl_http_proxy, "socks5h"))
 			curl_easy_setopt(result,
 				CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME);
@@ -1265,7 +1266,24 @@ static CURL *get_curl_handle(void)
 		if (!proxy_auth.host)
 			die("Invalid proxy URL '%s'", curl_http_proxy);
 
-		curl_easy_setopt(result, CURLOPT_PROXY, proxy_auth.host);
+		strbuf_addstr(&proxy, proxy_auth.host);
+		if (proxy_auth.path) {
+			int path_is_supported = 0;
+			/* curl_version_info was added in curl 7.10 */
+#if LIBCURL_VERSION_NUM >= 0x070a00
+			curl_version_info_data *ver = curl_version_info(CURLVERSION_NOW);
+			path_is_supported = ver->version_num >= 0x075400;
+#endif
+			if (path_is_supported) {
+				strbuf_addch(&proxy, '/');
+				strbuf_add_percentencode(&proxy, proxy_auth.path, 0);
+			} else {
+				die("libcurl 7.84 or later is required to support paths in proxy URLs");
+			}
+		}
+		curl_easy_setopt(result, CURLOPT_PROXY, proxy.buf);
+		strbuf_release(&proxy);
+
 		var_override(&curl_no_proxy, getenv("NO_PROXY"));
 		var_override(&curl_no_proxy, getenv("no_proxy"));
 		curl_easy_setopt(result, CURLOPT_NOPROXY, curl_no_proxy);
