@@ -39,4 +39,45 @@ test_expect_success 'clone can prompt for proxy password' '
 	expect_askpass pass proxuser
 '
 
+start_socks() {
+	mkfifo socks_output &&
+	{
+		"$PERL_PATH" "$TEST_DIRECTORY/socks4-proxy.pl" "$1" >socks_output &
+		echo $! > "$TRASH_DIRECTORY/socks.pid"
+	} &&
+	read line <socks_output &&
+	test "$line" = ready
+}
+
+# The %30 tests that the correct amount of percent-encoding is applied to the
+# proxy string passed to curl.
+test_lazy_prereq SOCKS_PROXY 'test_have_prereq PERL && start_socks "$TRASH_DIRECTORY/%30.sock"'
+
+test_atexit 'test ! -e "$TRASH_DIRECTORY/socks.pid" || kill "$(cat "$TRASH_DIRECTORY/socks.pid")"'
+
+test_expect_success SOCKS_PROXY 'clone via Unix socket' '
+	test_when_finished "rm -rf clone" &&
+	test_config_global http.proxy "socks4://localhost$PWD/%2530.sock" && {
+		{
+			GIT_TRACE_CURL=$PWD/trace git clone "$HTTPD_URL/smart/repo.git" clone 2>err &&
+			grep -i "SOCKS4 request granted." trace
+		} ||
+		grep "^fatal: libcurl 7\.84 or later" err
+	}
+'
+
+test_expect_success 'Unix socket requires socks*:' '
+	! git clone -c http.proxy=localhost/path https://example.com/repo.git 2>err && {
+		grep "^fatal: Invalid proxy URL '\''localhost/path'\'': only SOCKS proxies support paths" err ||
+		grep "^fatal: libcurl 7\.84 or later" err
+	}
+'
+
+test_expect_success 'Unix socket requires localhost' '
+	! git clone -c http.proxy=socks4://127.0.0.1/path https://example.com/repo.git 2>err && {
+		grep "^fatal: Invalid proxy URL '\''socks4://127\.0\.0\.1/path'\'': host must be localhost if a path is present" err ||
+		grep "^fatal: libcurl 7\.84 or later" err
+	}
+'
+
 test_done
