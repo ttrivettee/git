@@ -133,7 +133,9 @@ int advice_enabled(enum advice_type type)
 	static int globally_enabled = -1;
 
 	if (globally_enabled < 0)
-		globally_enabled = git_env_bool(GIT_ADVICE_ENVIRONMENT, 1);
+		globally_enabled = git_env_bool(GIT_ADVICE_ENVIRONMENT, -1);
+	if (globally_enabled < 0)
+		globally_enabled = isatty(2);
 	if (!globally_enabled)
 		return 0;
 
