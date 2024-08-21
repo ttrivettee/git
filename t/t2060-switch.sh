@@ -34,13 +34,13 @@ test_expect_success 'switch and detach' '
 '
 
 test_expect_success 'suggestion to detach' '
-	test_must_fail git switch main^{commit} 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git switch main^{commit} 2>stderr &&
 	grep "try again with the --detach option" stderr
 '
 
 test_expect_success 'suggestion to detach is suppressed with advice.suggestDetachingHead=false' '
 	test_config advice.suggestDetachingHead false &&
-	test_must_fail git switch main^{commit} 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git switch main^{commit} 2>stderr &&
 	! grep "try again with the --detach option" stderr
 '
 

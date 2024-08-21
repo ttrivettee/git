@@ -175,7 +175,7 @@ test_expect_success 'tracking count is accurate after orphan check' '
 	git config branch.child.remote . &&
 	git config branch.child.merge refs/heads/main &&
 	git checkout child^ &&
-	git checkout child >stdout &&
+	GIT_ADVICE=1 git checkout child >stdout &&
 	test_cmp expect stdout &&
 
 	git checkout --detach child >stdout &&
@@ -251,15 +251,17 @@ test_expect_success 'describe_detached_head prints no SHA-1 ellipsis when not as
 	# Various ways of *not* asking for ellipses
 
 	sane_unset GIT_PRINT_SHA1_ELLIPSIS &&
-	git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 1st_detach actual &&
 
-	GIT_PRINT_SHA1_ELLIPSIS="no" git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1  GIT_PRINT_SHA1_ELLIPSIS="no" git -c 'core.abbrev=12' \
+		checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 2nd_detach actual &&
 
-	GIT_PRINT_SHA1_ELLIPSIS= git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 GIT_PRINT_SHA1_ELLIPSIS= git -c 'core.abbrev=12' \
+		checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 3rd_detach actual &&
 
@@ -270,17 +272,17 @@ test_expect_success 'describe_detached_head prints no SHA-1 ellipsis when not as
 	check_not_detached &&
 
 	# Make no mention of the env var at all
-	git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 1st_detach actual &&
 
 	GIT_PRINT_SHA1_ELLIPSIS='nope' &&
-	git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 2nd_detach actual &&
 
 	GIT_PRINT_SHA1_ELLIPSIS=nein &&
-	git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 3rd_detach actual &&
 
@@ -333,15 +335,18 @@ test_expect_success 'describe_detached_head does print SHA-1 ellipsis when asked
 	# Various ways of asking for ellipses...
 	# The user can just use any kind of quoting (including none).
 
-	GIT_PRINT_SHA1_ELLIPSIS=yes git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 GIT_PRINT_SHA1_ELLIPSIS=yes git -c 'core.abbrev=12' \
+		checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 1st_detach actual &&
 
-	GIT_PRINT_SHA1_ELLIPSIS=Yes git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 GIT_PRINT_SHA1_ELLIPSIS=Yes git -c 'core.abbrev=12' \
+		checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 2nd_detach actual &&
 
-	GIT_PRINT_SHA1_ELLIPSIS=YES git -c 'core.abbrev=12' checkout HEAD^ >actual 2>&1 &&
+	GIT_ADVICE=1 GIT_PRINT_SHA1_ELLIPSIS=YES git -c 'core.abbrev=12' \
+		checkout HEAD^ >actual 2>&1 &&
 	check_detached &&
 	test_cmp 3rd_detach actual &&
 

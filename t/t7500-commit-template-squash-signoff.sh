@@ -554,7 +554,8 @@ test_expect_success 'commit without staging files fails and displays hints' '
 	git add file &&
 	git commit -m initial &&
 	echo "changes" >>file &&
-	test_must_fail git commit -m update >actual &&
+	test_env GIT_ADVICE=1 test_must_fail \
+		git commit -m update >actual &&
 	test_grep "no changes added to commit (use \"git add\" and/or \"git commit -a\")" actual
 '
 

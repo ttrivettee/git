@@ -30,7 +30,7 @@ for i in ign dir/ign dir/sub dir/sub/*ign sub/file sub sub/*
 do
 	test_expect_success "complaints for ignored $i" '
 		rm -f .git/index &&
-		test_must_fail git add "$i" 2>err &&
+		test_env GIT_ADVICE=1 test_must_fail git add "$i" 2>err &&
 		git ls-files "$i" >out &&
 		test_must_be_empty out
 	'
@@ -41,7 +41,7 @@ do
 
 	test_expect_success "complaints for ignored $i with unignored file" '
 		rm -f .git/index &&
-		test_must_fail git add "$i" file 2>err &&
+		test_env GIT_ADVICE=1 test_must_fail git add "$i" file 2>err &&
 		git ls-files "$i" >out &&
 		test_must_be_empty out
 	'
@@ -56,7 +56,7 @@ do
 		rm -f .git/index &&
 		(
 			cd dir &&
-			test_must_fail git add "$i" 2>err &&
+			test_env GIT_ADVICE=1 test_must_fail git add "$i" 2>err &&
 			git ls-files "$i" >out &&
 			test_must_be_empty out
 		)
@@ -76,7 +76,7 @@ do
 		rm -f .git/index &&
 		(
 			cd sub &&
-			test_must_fail git add "$i" 2>err &&
+			test_env GIT_ADVICE=1 test_must_fail git add "$i" 2>err &&
 			git ls-files "$i" >out &&
 			test_must_be_empty out
 		)

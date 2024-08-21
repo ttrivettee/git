@@ -103,11 +103,12 @@ test_expect_success 'when arg matches multiple remotes, do not fallback to inter
 test_expect_success 'checkout of branch from multiple remotes fails with advice' '
 	git checkout -B main &&
 	test_might_fail git branch -D foo &&
-	test_must_fail git checkout foo 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git checkout foo 2>stderr &&
 	test_branch main &&
 	status_uno_is_clean &&
 	test_grep "^hint: " stderr &&
-	test_must_fail git -c advice.checkoutAmbiguousRemoteBranchName=false \
+	test_env GIT_ADVICE=1 test_must_fail git \
+		-c advice.checkoutAmbiguousRemoteBranchName=false \
 		checkout foo 2>stderr &&
 	test_branch main &&
 	status_uno_is_clean &&

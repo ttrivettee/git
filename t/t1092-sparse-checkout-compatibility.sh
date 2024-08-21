@@ -411,10 +411,10 @@ test_expect_success 'add outside sparse cone' '
 	run_on_sparse mkdir folder1 &&
 	run_on_sparse ../edit-contents folder1/a &&
 	run_on_sparse ../edit-contents folder1/newfile &&
-	test_sparse_match test_must_fail git add folder1/a &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/a &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder1/a &&
-	test_sparse_match test_must_fail git add folder1/newfile &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/newfile &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder1/newfile
 '
@@ -466,13 +466,13 @@ test_expect_success 'status/add: outside sparse cone' '
 	test_sparse_match git status --porcelain=v2 &&
 
 	# Adding the path outside of the sparse-checkout cone should fail.
-	test_sparse_match test_must_fail git add folder1/a &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/a &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder1/a &&
 	test_all_match git add --refresh folder1/a &&
 	test_must_be_empty sparse-checkout-err &&
 	test_sparse_unstaged folder1/a &&
-	test_sparse_match test_must_fail git add folder1/new &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/new &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder1/new &&
 	test_sparse_match git add --sparse folder1/a &&
@@ -1018,7 +1018,7 @@ test_expect_success 'merge with conflict outside cone' '
 	test_all_match git status --porcelain=v2 &&
 
 	# 2. Add the file with conflict markers
-	test_sparse_match test_must_fail git add folder1/a &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/a &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder1/a &&
 	test_all_match git add --sparse folder1/a &&
@@ -1027,7 +1027,7 @@ test_expect_success 'merge with conflict outside cone' '
 	# 3. Rename the file to another sparse filename and
 	#    accept conflict markers as resolved content.
 	run_on_all mv folder2/a folder2/z &&
-	test_sparse_match test_must_fail git add folder2 &&
+	test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder2 &&
 	grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 	test_sparse_unstaged folder2/z &&
 	test_all_match git add --sparse folder2 &&
@@ -1058,7 +1058,7 @@ test_expect_success 'cherry-pick/rebase with conflict outside cone' '
 		# NEEDSWORK: Even though the merge conflict removed the
 		# SKIP_WORKTREE bit from the index entry for folder1/a, we should
 		# warn that this is a problematic add.
-		test_sparse_match test_must_fail git add folder1/a &&
+		test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder1/a &&
 		grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 		test_sparse_unstaged folder1/a &&
 		test_all_match git add --sparse folder1/a &&
@@ -1070,7 +1070,7 @@ test_expect_success 'cherry-pick/rebase with conflict outside cone' '
 		# outside of the sparse-checkout cone and does not match an
 		# existing index entry with the SKIP_WORKTREE bit cleared.
 		run_on_all mv folder2/a folder2/z &&
-		test_sparse_match test_must_fail git add folder2 &&
+		test_env GIT_ADVICE=1 test_sparse_match test_must_fail git add folder2 &&
 		grep "Disable or modify the sparsity rules" sparse-checkout-err &&
 		test_sparse_unstaged folder2/z &&
 		test_all_match git add --sparse folder2 &&
@@ -2341,7 +2341,7 @@ test_expect_success 'advice.sparseIndexExpanded' '
 	git -C sparse-index sparse-checkout set deep/deeper1 &&
 	mkdir -p sparse-index/deep/deeper2/deepest &&
 	touch sparse-index/deep/deeper2/deepest/bogus &&
-	git -C sparse-index status 2>err &&
+	GIT_ADVICE=1 git -C sparse-index status 2>err &&
 	grep "The sparse index is expanding to a full index" err
 '
 

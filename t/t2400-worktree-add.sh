@@ -436,7 +436,7 @@ test_wt_add_orphan_hint () {
 		git init repo &&
 		(cd repo && test_commit commit) &&
 		git -C repo switch --orphan noref &&
-		test_must_fail git -C repo worktree add $opts foobar/ 2>actual &&
+		test_env GIT_ADVICE=1 test_must_fail git -C repo worktree add $opts foobar/ 2>actual &&
 		! grep "error: unknown switch" actual &&
 		grep "hint: If you meant to create a worktree containing a new unborn branch" actual &&
 		if [ $use_branch -eq 1 ]
@@ -983,7 +983,7 @@ test_dwim_orphan () {
 			fi &&
 			if [ "$outcome" = "infer" ]
 			then
-				git $dashc_args worktree add $args 2>actual &&
+				GIT_ADVICE=1 git $dashc_args worktree add $args 2>actual &&
 				if [ $use_quiet -eq 1 ]
 				then
 					test_must_be_empty actual
@@ -992,7 +992,7 @@ test_dwim_orphan () {
 				fi
 			elif [ "$outcome" = "no_infer" ]
 			then
-				git $dashc_args worktree add $args 2>actual &&
+				GIT_ADVICE=1 git $dashc_args worktree add $args 2>actual &&
 				if [ $use_quiet -eq 1 ]
 				then
 					test_must_be_empty actual
@@ -1001,11 +1001,11 @@ test_dwim_orphan () {
 				fi
 			elif [ "$outcome" = "fetch_error" ]
 			then
-				test_must_fail git $dashc_args worktree add $args 2>actual &&
+				test_env GIT_ADVICE=1 test_must_fail git $dashc_args worktree add $args 2>actual &&
 				grep "$fetch_error_text" actual
 			elif [ "$outcome" = "fatal_orphan_bad_combo" ]
 			then
-				test_must_fail git $dashc_args worktree add $args 2>actual &&
+				test_env GIT_ADVICE=1 test_must_fail git $dashc_args worktree add $args 2>actual &&
 				if [ $use_quiet -eq 1 ]
 				then
 					! grep "$info_text" actual
@@ -1015,7 +1015,7 @@ test_dwim_orphan () {
 				grep "$bad_combo_regex" actual
 			elif [ "$outcome" = "warn_bad_head" ]
 			then
-				test_must_fail git $dashc_args worktree add $args 2>actual &&
+				test_env GIT_ADVICE=1 test_must_fail git $dashc_args worktree add $args 2>actual &&
 				if [ $use_quiet -eq 1 ]
 				then
 					grep "$invalid_ref_regex" actual &&
