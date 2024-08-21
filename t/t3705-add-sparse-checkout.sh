@@ -64,7 +64,7 @@ test_expect_success 'setup' "
 test_expect_success 'git add does not remove sparse entries' '
 	setup_sparse_entry &&
 	rm sparse_entry &&
-	test_must_fail git add sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp error_and_hint stderr &&
 	test_sparse_entry_unchanged
@@ -74,7 +74,7 @@ test_expect_success 'git add -A does not remove sparse entries' '
 	setup_sparse_entry &&
 	rm sparse_entry &&
 	setup_gitignore &&
-	git add -A 2>stderr &&
+	GIT_ADVICE=1 git add -A 2>stderr &&
 	test_must_be_empty stderr &&
 	test_sparse_entry_unchanged
 '
@@ -83,7 +83,7 @@ test_expect_success 'git add . does not remove sparse entries' '
 	setup_sparse_entry &&
 	rm sparse_entry &&
 	setup_gitignore &&
-	test_must_fail git add . 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add . 2>stderr &&
 	test_sparse_entry_unstaged &&
 
 	cat sparse_error_header >expect &&
@@ -99,7 +99,7 @@ do
 	test_expect_success "git add${opt:+ $opt} does not update sparse entries" '
 		setup_sparse_entry &&
 		echo modified >sparse_entry &&
-		test_must_fail git add $opt sparse_entry 2>stderr &&
+		test_env GIT_ADVICE=1 test_must_fail git add $opt sparse_entry 2>stderr &&
 		test_sparse_entry_unstaged &&
 		test_cmp error_and_hint stderr &&
 		test_sparse_entry_unchanged
@@ -110,7 +110,7 @@ test_expect_success 'git add --refresh does not update sparse entries' '
 	setup_sparse_entry &&
 	git ls-files --debug sparse_entry | grep mtime >before &&
 	test-tool chmtime -60 sparse_entry &&
-	test_must_fail git add --refresh sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add --refresh sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp error_and_hint stderr &&
 	git ls-files --debug sparse_entry | grep mtime >after &&
@@ -119,7 +119,7 @@ test_expect_success 'git add --refresh does not update sparse entries' '
 
 test_expect_success 'git add --chmod does not update sparse entries' '
 	setup_sparse_entry &&
-	test_must_fail git add --chmod=+x sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add --chmod=+x sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp error_and_hint stderr &&
 	test_sparse_entry_unchanged &&
@@ -131,7 +131,7 @@ test_expect_success 'git add --renormalize does not update sparse entries' '
 	test_config core.autocrlf false &&
 	setup_sparse_entry "LINEONE\r\nLINETWO\r\n" &&
 	echo "sparse_entry text=auto" >.gitattributes &&
-	test_must_fail git add --renormalize sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add --renormalize sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp error_and_hint stderr &&
 	test_sparse_entry_unchanged
@@ -140,7 +140,7 @@ test_expect_success 'git add --renormalize does not update sparse entries' '
 test_expect_success 'git add --dry-run --ignore-missing warn on sparse path' '
 	setup_sparse_entry &&
 	rm sparse_entry &&
-	test_must_fail git add --dry-run --ignore-missing sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add --dry-run --ignore-missing sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp error_and_hint stderr &&
 	test_sparse_entry_unchanged
@@ -148,7 +148,7 @@ test_expect_success 'git add --dry-run --ignore-missing warn on sparse path' '
 
 test_expect_success 'do not advice about sparse entries when they do not match the pathspec' '
 	setup_sparse_entry &&
-	test_must_fail git add nonexistent 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add nonexistent 2>stderr &&
 	grep "fatal: pathspec .nonexistent. did not match any files" stderr &&
 	! grep -F -f sparse_error_header stderr
 '
@@ -157,7 +157,7 @@ test_expect_success 'do not warn when pathspec matches dense entries' '
 	setup_sparse_entry &&
 	echo modified >sparse_entry &&
 	>dense_entry &&
-	git add "*_entry" 2>stderr &&
+	GIT_ADVICE=1 git add "*_entry" 2>stderr &&
 	test_must_be_empty stderr &&
 	test_sparse_entry_unchanged &&
 	git ls-files --error-unmatch dense_entry
@@ -181,12 +181,12 @@ test_expect_success 'git add fails outside of sparse-checkout definition' '
 	test_sparse_entry_unstaged &&
 
 	# Avoid munging CRLFs to avoid an error message
-	git -c core.autocrlf=input add --sparse sparse_entry 2>stderr &&
+	GIT_ADVICE=1 git -c core.autocrlf=input add --sparse sparse_entry 2>stderr &&
 	test_must_be_empty stderr &&
 	git ls-files --stage >actual &&
 	grep "^100644 .*sparse_entry\$" actual &&
 
-	git add --sparse --chmod=+x sparse_entry 2>stderr &&
+	GIT_ADVICE=1 git add --sparse --chmod=+x sparse_entry 2>stderr &&
 	test_must_be_empty stderr &&
 	git ls-files --stage >actual &&
 	grep "^100755 .*sparse_entry\$" actual &&
@@ -201,7 +201,7 @@ test_expect_success 'git add fails outside of sparse-checkout definition' '
 
 test_expect_success 'add obeys advice.updateSparsePath' '
 	setup_sparse_entry &&
-	test_must_fail git -c advice.updateSparsePath=false add sparse_entry 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git -c advice.updateSparsePath=false add sparse_entry 2>stderr &&
 	test_sparse_entry_unstaged &&
 	test_cmp sparse_entry_error stderr
 
@@ -212,7 +212,7 @@ test_expect_success 'add allows sparse entries with --sparse' '
 	echo modified >sparse_entry &&
 	test_must_fail git add sparse_entry &&
 	test_sparse_entry_unchanged &&
-	git add --sparse sparse_entry 2>stderr &&
+	GIT_ADVICE=1 git add --sparse sparse_entry 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -220,7 +220,7 @@ test_expect_success 'can add files from non-sparse dir' '
 	git sparse-checkout set w !/x y/ &&
 	mkdir -p w x/y &&
 	touch w/f x/y/f &&
-	git add w/f x/y/f 2>stderr &&
+	GIT_ADVICE=1 git add w/f x/y/f 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -228,7 +228,7 @@ test_expect_success 'refuse to add non-skip-worktree file from sparse dir' '
 	git sparse-checkout set !/x y/ !x/y/z &&
 	mkdir -p x/y/z &&
 	touch x/y/z/f &&
-	test_must_fail git add x/y/z/f 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git add x/y/z/f 2>stderr &&
 	echo x/y/z/f | cat sparse_error_header - sparse_hint >expect &&
 	test_cmp expect stderr
 '

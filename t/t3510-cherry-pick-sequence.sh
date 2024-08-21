@@ -231,7 +231,7 @@ test_expect_success 'check advice when we move HEAD by committing' '
 	echo c >foo &&
 	git commit -a &&
 	test_path_is_missing .git/CHERRY_PICK_HEAD &&
-	test_must_fail git cherry-pick --skip 2>advice &&
+	test_env GIT_ADVICE=1 test_must_fail git cherry-pick --skip 2>advice &&
 	test_cmp expect advice
 '
 
@@ -243,7 +243,7 @@ test_expect_success 'selectively advise --skip while launching another sequence'
 	fatal: cherry-pick failed
 	EOF
 	test_must_fail git cherry-pick picked..yetanotherpick &&
-	test_must_fail git cherry-pick picked..yetanotherpick 2>advice &&
+	test_env GIT_ADVICE=1 test_must_fail git cherry-pick picked..yetanotherpick 2>advice &&
 	test_cmp expect advice &&
 	cat >expect <<-EOF &&
 	error: cherry-pick is already in progress
@@ -251,7 +251,7 @@ test_expect_success 'selectively advise --skip while launching another sequence'
 	fatal: cherry-pick failed
 	EOF
 	git reset --merge &&
-	test_must_fail git cherry-pick picked..yetanotherpick 2>advice &&
+	test_env GIT_ADVICE=1 test_must_fail git cherry-pick picked..yetanotherpick 2>advice &&
 	test_cmp expect advice
 '
 

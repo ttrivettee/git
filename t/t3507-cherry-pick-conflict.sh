@@ -62,7 +62,7 @@ test_expect_success 'advice from failed cherry-pick' '
 	hint: run "git cherry-pick --abort".
 	hint: Disable this message with "git config advice.mergeConflict false"
 	EOF
-	test_must_fail git cherry-pick picked 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git cherry-pick picked 2>actual &&
 
 	test_cmp expected actual
 '
@@ -77,7 +77,7 @@ test_expect_success 'advice from failed cherry-pick --no-commit' "
 	hint: with 'git add <paths>' or 'git rm <paths>'
 	hint: Disable this message with \"git config advice.mergeConflict false\"
 	EOF
-	test_must_fail git cherry-pick --no-commit picked 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git cherry-pick --no-commit picked 2>actual &&
 
 	test_cmp expected actual
 "

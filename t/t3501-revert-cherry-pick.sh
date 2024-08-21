@@ -181,7 +181,7 @@ test_expect_success 'advice from failed revert' '
 	hint: Disable this message with "git config advice.mergeConflict false"
 	EOF
 	test_commit --append --no-tag "double-add dream" dream dream &&
-	test_must_fail git revert HEAD^ 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git revert HEAD^ 2>actual &&
 	test_cmp expected actual
 '
 

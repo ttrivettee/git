@@ -1161,7 +1161,7 @@ test_expect_success 'avoid ambiguous track and advise' '
 	hint: different remotes'\'' fetch refspecs map into different
 	hint: tracking namespaces.
 	EOF
-	test_must_fail git branch all1 main 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git branch all1 main 2>actual &&
 	test_cmp expected actual &&
 	test -z "$(git config branch.all1.merge)"
 '
@@ -1699,7 +1699,7 @@ test_expect_success 'errors if given a bad branch name' '
 	hint: See `man git check-ref-format`
 	hint: Disable this message with "git config advice.refSyntax false"
 	EOF
-	test_must_fail git branch foo..bar >actual 2>&1 &&
+	test_env GIT_ADVICE=1 test_must_fail git branch foo..bar >actual 2>&1 &&
 	test_cmp expect actual
 '
 

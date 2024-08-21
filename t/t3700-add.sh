@@ -34,7 +34,7 @@ test_expect_success 'Test with no pathspecs' '
 	hint: Maybe you wanted to say ${SQ}git add .${SQ}?
 	hint: Disable this message with "git config advice.addEmptyPathspec false"
 	EOF
-	git add 2>actual &&
+	GIT_ADVICE=1 git add 2>actual &&
 	test_cmp expect actual
 '
 
@@ -360,7 +360,7 @@ test_expect_success '"git add" a embedded repository' '
 			git -C $name commit --allow-empty -m $name ||
 				return 1
 		done &&
-		git add . 2>actual &&
+		GIT_ADVICE=1 git add . 2>actual &&
 		cat >expect <<-EOF &&
 		warning: adding embedded git repository: inner1
 		hint: You${SQ}ve added another git repository inside your current repository.
@@ -421,7 +421,7 @@ add 'track-this'
 EOF
 
 test_expect_success 'git add --dry-run --ignore-missing of non-existing file' '
-	test_must_fail git add --dry-run --ignore-missing track-this ignored-file >actual.out 2>actual.err
+	test_env GIT_ADVICE=1 test_must_fail git add --dry-run --ignore-missing track-this ignored-file >actual.out 2>actual.err
 '
 
 test_expect_success 'git add --dry-run --ignore-missing of non-existing file output' '

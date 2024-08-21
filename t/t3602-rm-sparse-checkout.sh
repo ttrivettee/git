@@ -32,7 +32,7 @@ for opt in "" -f --dry-run
 do
 	test_expect_success "rm${opt:+ $opt} does not remove sparse entries" '
 		git sparse-checkout set --no-cone a &&
-		test_must_fail git rm $opt b 2>stderr &&
+		test_env GIT_ADVICE=1 test_must_fail git rm $opt b 2>stderr &&
 		test_cmp b_error_and_hint stderr &&
 		git ls-files --error-unmatch b
 	'
@@ -72,14 +72,14 @@ test_expect_success 'recursive rm --sparse removes sparse entries' '
 test_expect_success 'rm obeys advice.updateSparsePath' '
 	git reset --hard &&
 	git sparse-checkout set a &&
-	test_must_fail git -c advice.updateSparsePath=false rm b 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git -c advice.updateSparsePath=false rm b 2>stderr &&
 	test_cmp sparse_entry_b_error stderr
 '
 
 test_expect_success 'do not advice about sparse entries when they do not match the pathspec' '
 	git reset --hard &&
 	git sparse-checkout set a &&
-	test_must_fail git rm nonexistent 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git rm nonexistent 2>stderr &&
 	grep "fatal: pathspec .nonexistent. did not match any files" stderr &&
 	! grep -F -f sparse_error_header stderr
 '
@@ -87,7 +87,7 @@ test_expect_success 'do not advice about sparse entries when they do not match t
 test_expect_success 'do not warn about sparse entries when pathspec matches dense entries' '
 	git reset --hard &&
 	git sparse-checkout set a &&
-	git rm "[ba]" 2>stderr &&
+	GIT_ADVICE=1 git rm "[ba]" 2>stderr &&
 	test_must_be_empty stderr &&
 	git ls-files --error-unmatch b &&
 	test_must_fail git ls-files --error-unmatch a
@@ -96,7 +96,7 @@ test_expect_success 'do not warn about sparse entries when pathspec matches dens
 test_expect_success 'do not warn about sparse entries with --ignore-unmatch' '
 	git reset --hard &&
 	git sparse-checkout set a &&
-	git rm --ignore-unmatch b 2>stderr &&
+	GIT_ADVICE=1 git rm --ignore-unmatch b 2>stderr &&
 	test_must_be_empty stderr &&
 	git ls-files --error-unmatch b
 '
@@ -105,9 +105,9 @@ test_expect_success 'refuse to rm a non-skip-worktree path outside sparse cone' 
 	git reset --hard &&
 	git sparse-checkout set a &&
 	git update-index --no-skip-worktree b &&
-	test_must_fail git rm b 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git rm b 2>stderr &&
 	test_cmp b_error_and_hint stderr &&
-	git rm --sparse b 2>stderr &&
+	GIT_ADVICE=1 git rm --sparse b 2>stderr &&
 	test_must_be_empty stderr &&
 	test_path_is_missing b
 '
@@ -120,7 +120,7 @@ test_expect_success 'can remove files from non-sparse dir' '
 	test_commit x/y/f &&
 
 	git sparse-checkout set --no-cone w !/x y/ &&
-	git rm w/f.t x/y/f.t 2>stderr &&
+	GIT_ADVICE=1 git rm w/f.t x/y/f.t 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -132,7 +132,7 @@ test_expect_success 'refuse to remove non-skip-worktree file from sparse dir' '
 	git sparse-checkout set --no-cone !/x y/ !x/y/z &&
 
 	git update-index --no-skip-worktree x/y/z/f.t &&
-	test_must_fail git rm x/y/z/f.t 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git rm x/y/z/f.t 2>stderr &&
 	echo x/y/z/f.t | cat sparse_error_header - sparse_hint >expect &&
 	test_cmp expect stderr
 '

@@ -678,7 +678,7 @@ test_expect_success 'am -3 -q is quiet' '
 	rm -fr .git/rebase-apply &&
 	git checkout -f lorem2 &&
 	git reset base3way --hard &&
-	git am -3 -q lorem-move.patch >output.out 2>&1 &&
+	GIT_ADVICE=1 git am -3 -q lorem-move.patch >output.out 2>&1 &&
 	test_must_be_empty output.out
 '
 
@@ -921,7 +921,7 @@ test_expect_success 'am -q is quiet' '
 	git reset --hard &&
 	git checkout first &&
 	test_tick &&
-	git am -q <patch1 >output.out 2>&1 &&
+	GIT_ADVICE=1 git am -q <patch1 >output.out 2>&1 &&
 	test_must_be_empty output.out
 '
 
@@ -930,7 +930,7 @@ test_expect_success 'am empty-file does not infloop' '
 	git reset --hard &&
 	touch empty-file &&
 	test_tick &&
-	test_must_fail git am empty-file 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git am empty-file 2>actual &&
 	echo Patch format detection failed. >expected &&
 	test_cmp expected actual
 '
@@ -1180,7 +1180,7 @@ test_expect_success 'apply binary blob in partial clone' '
 
 test_expect_success 'an empty input file is error regardless of --empty option' '
 	test_when_finished "git am --abort || :" &&
-	test_must_fail git am --empty=drop empty.patch 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git am --empty=drop empty.patch 2>actual &&
 	echo "Patch format detection failed." >expected &&
 	test_cmp expected actual
 '
@@ -1188,7 +1188,7 @@ test_expect_success 'an empty input file is error regardless of --empty option' 
 test_expect_success 'invalid when passing the --empty option alone' '
 	test_when_finished "git am --abort || :" &&
 	git checkout empty-commit^ &&
-	test_must_fail git am --empty empty-commit.patch 2>err &&
+	test_env GIT_ADVICE=1 test_must_fail git am --empty empty-commit.patch 2>err &&
 	echo "error: invalid value for '\''--empty'\'': '\''empty-commit.patch'\''" >expected &&
 	test_cmp expected err
 '
@@ -1224,7 +1224,7 @@ test_expect_success 'record as an empty commit when meeting e-mail message that 
 
 test_expect_success 'skip an empty patch in the middle of an am session' '
 	git checkout empty-commit^ &&
-	test_must_fail git am empty-commit.patch >out 2>err &&
+	test_env GIT_ADVICE=1 test_must_fail git am empty-commit.patch >out 2>err &&
 	grep "Patch is empty." out &&
 	grep "To record the empty patch as an empty commit, run \"git am --allow-empty\"." err &&
 	git am --skip &&
@@ -1236,7 +1236,7 @@ test_expect_success 'skip an empty patch in the middle of an am session' '
 
 test_expect_success 'record an empty patch as an empty commit in the middle of an am session' '
 	git checkout empty-commit^ &&
-	test_must_fail git am empty-commit.patch >out 2>err &&
+	test_env GIT_ADVICE=1 test_must_fail git am empty-commit.patch >out 2>err &&
 	grep "Patch is empty." out &&
 	grep "To record the empty patch as an empty commit, run \"git am --allow-empty\"." err &&
 	git am --allow-empty >output &&

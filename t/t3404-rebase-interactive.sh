@@ -2229,7 +2229,7 @@ test_expect_success 'non-merge commands reject merge commits' '
 	EOF
 	(
 		set_replace_editor todo &&
-		test_must_fail git rebase -i HEAD 2>actual
+		test_env GIT_ADVICE=1 test_must_fail git rebase -i HEAD 2>actual
 	) &&
 	cat >expect <<-EOF &&
 	error: ${SQ}pick${SQ} does not accept merge commits

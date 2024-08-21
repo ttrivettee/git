@@ -822,7 +822,7 @@ test_expect_success 'rm files with different staged content' '
 	EOF
 	echo content1 >foo.txt &&
 	echo content1 >bar.txt &&
-	test_must_fail git rm foo.txt bar.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git rm foo.txt bar.txt 2>actual &&
 	test_cmp expect actual
 '
 
@@ -847,7 +847,7 @@ test_expect_success 'rm file with local modification' '
 	EOF
 	git commit -m "testing rm 3" &&
 	echo content3 >foo.txt &&
-	test_must_fail git rm foo.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git rm foo.txt 2>actual &&
 	test_cmp expect actual
 '
 
@@ -857,7 +857,7 @@ test_expect_success 'rm file with local modification without hints' '
 	    bar.txt
 	EOF
 	echo content4 >bar.txt &&
-	test_must_fail git -c advice.rmhints=false rm bar.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git -c advice.rmhints=false rm bar.txt 2>actual &&
 	test_cmp expect actual
 '
 
@@ -870,7 +870,7 @@ test_expect_success 'rm file with changes in the index' '
 	git reset --hard &&
 	echo content5 >foo.txt &&
 	git add foo.txt &&
-	test_must_fail git rm foo.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git rm foo.txt 2>actual &&
 	test_cmp expect actual
 '
 
@@ -879,7 +879,7 @@ test_expect_success 'rm file with changes in the index without hints' '
 	error: the following file has changes staged in the index:
 	    foo.txt
 	EOF
-	test_must_fail git -c advice.rmhints=false rm foo.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git -c advice.rmhints=false rm foo.txt 2>actual &&
 	test_cmp expect actual
 '
 
@@ -898,7 +898,7 @@ test_expect_success 'rm files with two different errors' '
 	echo content6 >foo1.txt &&
 	echo content6 >bar1.txt &&
 	git add bar1.txt &&
-	test_must_fail git rm bar1.txt foo1.txt 2>actual &&
+	test_env GIT_ADVICE=1 test_must_fail git rm bar1.txt foo1.txt 2>actual &&
 	test_cmp expect actual
 '
 
