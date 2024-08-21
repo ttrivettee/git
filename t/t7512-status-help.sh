@@ -17,6 +17,10 @@ TEST_PASSES_SANITIZE_LEAK=true
 
 set_fake_editor
 
+# 'git status' output changes depending on the availability of advice,
+# so force its output to enable advice, even though it goes to stdout.
+GIT_ADVICE=1 && export GIT_ADVICE
+
 test_expect_success 'prepare for conflicts' '
 	git config --global advice.statusuoption false &&
 	test_commit init main.txt init &&

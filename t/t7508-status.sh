@@ -9,6 +9,10 @@ TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/lib-terminal.sh
 
+# 'git status' output changes depending on the availability of advice,
+# so force its output to enable advice, even though it goes to stdout.
+GIT_ADVICE=1 && export GIT_ADVICE
+
 test_expect_success 'status -h in broken repository' '
 	git config --global advice.statusuoption false &&
 	mkdir broken &&
