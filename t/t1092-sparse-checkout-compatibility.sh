@@ -179,22 +179,26 @@ init_repos_as_submodules () {
 }
 
 run_on_sparse () {
+	tee run_on_sparse-checkout run_on_sparse-index &&
+
 	(
 		cd sparse-checkout &&
 		GIT_PROGRESS_DELAY=100000 "$@" >../sparse-checkout-out 2>../sparse-checkout-err
-	) &&
+	) <run_on_sparse-checkout &&
 	(
 		cd sparse-index &&
 		GIT_PROGRESS_DELAY=100000 "$@" >../sparse-index-out 2>../sparse-index-err
-	)
+	) <run_on_sparse-index
 }
 
 run_on_all () {
+	tee run_on_all-full run_on_all-sparse &&
+
 	(
 		cd full-checkout &&
 		GIT_PROGRESS_DELAY=100000 "$@" >../full-checkout-out 2>../full-checkout-err
-	) &&
-	run_on_sparse "$@"
+	) <run_on_all-full &&
+	run_on_sparse "$@" <run_on_all-sparse
 }
 
 test_all_match () {
@@ -221,7 +225,7 @@ test_sparse_unstaged () {
 	done
 }
 
-# Usage: test_sprase_checkout_set "<c1> ... <cN>" "<s1> ... <sM>"
+# Usage: test_sparse_checkout_set "<c1> ... <cN>" "<s1> ... <sM>"
 # Verifies that "git sparse-checkout set <c1> ... <cN>" succeeds and
 # leaves the sparse index in a state where <s1> ... <sM> are sparse
 # directories (and <c1> ... <cN> are not).
@@ -2344,5 +2348,62 @@ test_expect_success 'advice.sparseIndexExpanded' '
 	git -C sparse-index status 2>err &&
 	grep "The sparse index is expanding to a full index" err
 '
+
+test_expect_success 'cat-file -p' '
+	init_repos &&
+	echo "new content" >>full-checkout/deep/a &&
+	echo "new content" >>sparse-checkout/deep/a &&
+	echo "new content" >>sparse-index/deep/a &&
+	run_on_all git add deep/a &&
+
+	test_all_match git cat-file -p HEAD:deep/a &&
+	ensure_not_expanded cat-file -p HEAD:deep/a &&
+	test_all_match git cat-file -p HEAD:folder1/a &&
+	ensure_not_expanded cat-file -p HEAD:folder1/a &&
+
+	test_all_match git cat-file -p :deep/a &&
+	ensure_not_expanded cat-file -p :deep/a &&
+	run_on_all git cat-file -p :folder1/a &&
+	test_cmp full-checkout-out sparse-checkout-out &&
+	test_cmp full-checkout-out sparse-index-out &&
+	test_cmp full-checkout-err sparse-checkout-err &&
+	ensure_expanded cat-file -p :folder1/a'
+
+test_expect_success 'cat-file --batch' '
+	init_repos &&
+	echo "new content" >>full-checkout/deep/a &&
+	echo "new content" >>sparse-checkout/deep/a &&
+	echo "new content" >>sparse-index/deep/a &&
+	run_on_all git add deep/a &&
+
+	cat <<-\EOF | test_all_match git cat-file --batch &&
+	HEAD:deep/a
+	:deep/a
+	EOF
+	cat <<-\EOF | ensure_not_expanded cat-file --batch &&
+	HEAD:deep/a
+	:deep/a
+	EOF
+
+	echo "HEAD:folder1/a" | test_all_match git cat-file --batch &&
+	echo "HEAD:folder1/a" | ensure_not_expanded cat-file --batch &&
+
+	echo ":folder1/a" | run_on_all git cat-file --batch &&
+	test_cmp full-checkout-out sparse-checkout-out &&
+	test_cmp full-checkout-out sparse-index-out &&
+	test_cmp full-checkout-err sparse-checkout-err &&
+	echo ":folder1/a" | ensure_expanded cat-file --batch &&
+
+	cat <<-\EOF | run_on_all git cat-file --batch &&
+	:deep/a
+	:folder1/a
+	EOF
+	test_cmp full-checkout-out sparse-checkout-out &&
+	test_cmp full-checkout-out sparse-index-out &&
+	test_cmp full-checkout-err sparse-checkout-err &&
+	cat <<-\EOF | ensure_expanded cat-file --batch
+	:deep/a
+	:folder1/a
+	EOF'
 
 test_done
