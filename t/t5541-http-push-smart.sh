@@ -145,7 +145,7 @@ test_expect_success 'push fails for non-fast-forward refs unmatched by remote he
 
 	# push main too; this ensures there is at least one '"'push'"' command to
 	# the remote helper and triggers interaction with the helper.
-	test_must_fail git push -v origin +main main:niam >output 2>&1'
+	test_env GIT_ADVICE=1 test_must_fail git push -v origin +main main:niam >output 2>&1'
 
 test_expect_success 'push fails for non-fast-forward refs unmatched by remote helper: remote output' '
 	grep "^ + [a-f0-9]*\.\.\.[a-f0-9]* *main -> main (forced update)$" output &&
@@ -477,7 +477,9 @@ test_expect_success 'Non-ASCII branch name can be used with --force-with-lease' 
 
 test_expect_success 'colorize errors/hints' '
 	cd "$ROOT_PATH"/test_repo_clone &&
-	test_must_fail git -c color.transport=always -c color.advice=always \
+	test_env GIT_ADVICE=1 test_must_fail git \
+		-c color.transport=always \
+		-c color.advice=always \
 		-c color.push=always \
 		push origin origin/main^:main 2>act &&
 	test_decode_color <act >decoded &&

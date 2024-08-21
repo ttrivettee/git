@@ -1452,10 +1452,11 @@ test_expect_success 'unqualified <dst> refspec DWIM and advice' '
 			else
 				oid=$(git rev-parse some-tag^{$type})
 			fi &&
-			test_must_fail git push origin $oid:dst 2>err &&
+			test_env GIT_ADVICE=1 test_must_fail git push origin $oid:dst 2>err &&
 			test_grep "error: The destination you" err &&
 			test_grep "hint: Did you mean" err &&
-			test_must_fail git -c advice.pushUnqualifiedRefName=false \
+			test_env GIT_ADVICE=1 test_must_fail git \
+				-c advice.pushUnqualifiedRefName=false \
 				push origin $oid:dst 2>err &&
 			test_grep "error: The destination you" err &&
 			test_grep ! "hint: Did you mean" err ||

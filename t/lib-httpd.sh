@@ -265,7 +265,7 @@ test_http_push_nonff () {
 		echo "changed" > path2 &&
 		git commit -a -m path2 --amend &&
 
-		test_must_fail git push -v origin >output 2>&1 &&
+		test_env GIT_ADVICE=1 test_must_fail git push -v origin >output 2>&1 &&
 		(
 			cd "$REMOTE_REPO" &&
 			echo "$HEAD" >expect &&

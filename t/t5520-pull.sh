@@ -375,7 +375,7 @@ test_expect_success '--rebase with conflicts shows advice' '
 	echo conflicting >>seq.txt &&
 	test_tick &&
 	git commit -m "Create conflict" seq.txt &&
-	test_must_fail git pull --rebase . seq 2>err >out &&
+	test_env GIT_ADVICE=1 test_must_fail git pull --rebase . seq 2>err >out &&
 	test_grep "Resolve all conflicts manually" err
 '
 
@@ -389,7 +389,7 @@ test_expect_success 'failed --rebase shows advice' '
 	# force checkout because `git reset --hard` will not leave clean `file`
 	git checkout -f -b fails-to-rebase HEAD^ &&
 	test_commit v2-without-cr file "2" file2-lf &&
-	test_must_fail git pull --rebase . diverging 2>err >out &&
+	test_env GIT_ADVICE=1 test_must_fail git pull --rebase . diverging 2>err >out &&
 	test_grep "Resolve all conflicts manually" err
 '
 
