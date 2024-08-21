@@ -489,9 +489,9 @@ test_expect_success '--convert-graft-file' '
 	printf "%s\n%s %s\n\n# comment\n%s\n" \
 		$(git rev-parse HEAD^^ HEAD^ HEAD^^ HEAD^2) \
 		>.git/info/grafts &&
-	git status 2>stderr &&
+	GIT_ADVICE=1 git status 2>stderr &&
 	test_grep "hint:.*grafts is deprecated" stderr &&
-	git replace --convert-graft-file 2>stderr &&
+	GIT_ADVICE=1 git replace --convert-graft-file 2>stderr &&
 	test_grep ! "hint:.*grafts is deprecated" stderr &&
 	test_path_is_missing .git/info/grafts &&
 
@@ -502,7 +502,7 @@ test_expect_success '--convert-graft-file' '
 	: create invalid graft file and verify that it is not deleted &&
 	test_when_finished "rm -f .git/info/grafts" &&
 	echo $EMPTY_BLOB $EMPTY_TREE >.git/info/grafts &&
-	test_must_fail git replace --convert-graft-file 2>err &&
+	test_env GIT_ADVICE=1 test_must_fail git replace --convert-graft-file 2>err &&
 	test_grep "$EMPTY_BLOB $EMPTY_TREE" err &&
 	test_grep "$EMPTY_BLOB $EMPTY_TREE" .git/info/grafts
 '

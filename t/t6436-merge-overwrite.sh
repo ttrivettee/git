@@ -104,7 +104,7 @@ test_expect_success 'will not overwrite unstaged changes in renamed file' '
 	cp important other.c &&
 	if test "$GIT_TEST_MERGE_ALGORITHM" = ort
 	then
-		test_must_fail git merge c1a >out 2>err &&
+		test_env GIT_ADVICE=1 test_must_fail git merge c1a >out 2>err &&
 		test_grep "would be overwritten by merge" err &&
 		test_cmp important other.c &&
 		test_path_is_missing .git/MERGE_HEAD
@@ -140,7 +140,7 @@ test_expect_success 'will not overwrite untracked file in leading path' '
 	rm -rf sub &&
 	cp important sub &&
 	cp important sub2 &&
-	test_must_fail git merge sub 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git merge sub 2>out &&
 	test_cmp out expect &&
 	test_path_is_missing .git/MERGE_HEAD &&
 	test_cmp important sub &&
@@ -175,7 +175,7 @@ test_expect_success 'will not overwrite untracked file on unborn branch' '
 	git rm -fr . &&
 	git checkout --orphan new &&
 	cp important c0.c &&
-	test_must_fail git merge c0 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git merge c0 2>out &&
 	test_cmp out expect
 '
 

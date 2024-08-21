@@ -118,10 +118,10 @@ do
 done
 
 test_expect_success 'show advice that grafts are deprecated' '
-	git show HEAD 2>err &&
+	GIT_ADVICE=1 git show HEAD 2>err &&
 	test_grep "git replace" err &&
 	test_config advice.graftFileDeprecated false &&
-	git show HEAD 2>err &&
+	GIT_ADVICE=1 git show HEAD 2>err &&
 	test_grep ! "git replace" err
 '
 

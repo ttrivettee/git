@@ -40,13 +40,13 @@ Aborting
 EOF
 
 test_expect_success 'untracked files overwritten by merge (fast and non-fast forward)' '
-	test_must_fail git merge branch 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git merge branch 2>out &&
 	test_cmp out expect &&
 	git commit --allow-empty -m empty &&
 	(
 		GIT_MERGE_VERBOSITY=0 &&
 		export GIT_MERGE_VERBOSITY &&
-		test_must_fail git merge branch 2>out2
+		test_env GIT_ADVICE=1 test_must_fail git merge branch 2>out2
 	) &&
 	echo "Merge with strategy ${GIT_TEST_MERGE_ALGORITHM:-ort} failed." >>expect &&
 	test_cmp out2 expect &&
@@ -69,7 +69,7 @@ test_expect_success 'untracked files or local changes ovewritten by merge' '
 	git add two &&
 	git add three &&
 	git add four &&
-	test_must_fail git merge branch 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git merge branch 2>out &&
 	test_cmp out expect
 '
 
@@ -91,7 +91,7 @@ test_expect_success 'cannot switch branches because of local changes' '
 	git checkout main &&
 	echo uno >rep/one &&
 	echo dos >rep/two &&
-	test_must_fail git checkout branch 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git checkout branch 2>out &&
 	test_cmp out expect
 '
 
@@ -105,7 +105,7 @@ EOF
 
 test_expect_success 'not uptodate file porcelain checkout error' '
 	git add rep/one rep/two &&
-	test_must_fail git checkout branch 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git checkout branch 2>out &&
 	test_cmp out expect
 '
 
@@ -136,7 +136,7 @@ test_expect_success 'not_uptodate_dir porcelain checkout error' '
 	git checkout main &&
 	>rep/untracked-file &&
 	>rep2/untracked-file &&
-	test_must_fail git checkout branch 2>out &&
+	test_env GIT_ADVICE=1 test_must_fail git checkout branch 2>out &&
 	test_cmp out ../expect
 '
 
