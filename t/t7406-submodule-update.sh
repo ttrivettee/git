@@ -206,7 +206,7 @@ test_expect_success 'submodule update should fail due to local changes' '
 	 (cd submodule &&
 	  compare_head
 	 ) &&
-	 test_must_fail git submodule update submodule 2>../actual.raw
+	 test_env GIT_ADVICE=1 test_must_fail git submodule update submodule 2>../actual.raw
 	) &&
 	sed "s/^> //" >expect <<-\EOF &&
 	> error: Your local changes to the following files would be overwritten by checkout:

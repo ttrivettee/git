@@ -56,9 +56,10 @@ EOF
 		git rm foo &&
 		git commit -m delete &&
 		test_must_fail git merge main &&
-		test_must_fail git commit --dry-run >../actual &&
+		test_env GIT_ADVICE=1 test_must_fail \
+			git commit --dry-run >../actual &&
 		test_cmp ../expect ../actual &&
-		git status >../actual &&
+		test_env GIT_ADVICE=1 git status >../actual &&
 		test_cmp ../expect ../actual
 	)
 '
@@ -151,7 +152,7 @@ Unmerged paths:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 EOF
-	git status --untracked-files=no >actual &&
+	GIT_ADVICE=1 git status --untracked-files=no >actual &&
 	test_cmp expected actual
 '
 
@@ -185,7 +186,7 @@ Unmerged paths:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 EOF
-	git status --untracked-files=no >actual &&
+	GIT_ADVICE=1 git status --untracked-files=no >actual &&
 	test_cmp expected actual
 '
 
@@ -210,7 +211,7 @@ Unmerged paths:
 
 Untracked files not listed (use -u option to show untracked files)
 EOF
-	git status --untracked-files=no >actual &&
+	GIT_ADVICE=1 git status --untracked-files=no >actual &&
 	test_cmp expected actual &&
 	git reset --hard &&
 	git checkout main

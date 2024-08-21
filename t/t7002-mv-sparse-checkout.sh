@@ -55,13 +55,13 @@ test_expect_success 'mv refuses to move sparse-to-sparse' '
 	git reset --hard &&
 	git sparse-checkout set --no-cone a &&
 	touch b &&
-	test_must_fail git mv b e 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv b e 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo b >>expect &&
 	echo e >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse b e 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse b e 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -72,7 +72,7 @@ test_expect_success 'mv refuses to move sparse-to-sparse, ignores failure' '
 
 	# tracked-to-untracked
 	touch b &&
-	git mv -k b e 2>stderr &&
+	GIT_ADVICE=1 git mv -k b e 2>stderr &&
 	test_path_exists b &&
 	test_path_is_missing e &&
 	cat sparse_error_header >expect &&
@@ -81,7 +81,7 @@ test_expect_success 'mv refuses to move sparse-to-sparse, ignores failure' '
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse b e 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse b e 2>stderr &&
 	test_must_be_empty stderr &&
 	test_path_is_missing b &&
 	test_path_exists e &&
@@ -89,7 +89,7 @@ test_expect_success 'mv refuses to move sparse-to-sparse, ignores failure' '
 	# tracked-to-tracked
 	git reset --hard &&
 	touch b &&
-	git mv -k b c 2>stderr &&
+	GIT_ADVICE=1 git mv -k b c 2>stderr &&
 	test_path_exists b &&
 	test_path_is_missing c &&
 	cat sparse_error_header >expect &&
@@ -98,7 +98,7 @@ test_expect_success 'mv refuses to move sparse-to-sparse, ignores failure' '
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse b c 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse b c 2>stderr &&
 	test_must_be_empty stderr &&
 	test_path_is_missing b &&
 	test_path_exists c
@@ -110,14 +110,14 @@ test_expect_success 'mv refuses to move non-sparse-to-sparse' '
 	git sparse-checkout set a &&
 
 	# tracked-to-untracked
-	test_must_fail git mv a e 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv a e 2>stderr &&
 	test_path_exists a &&
 	test_path_is_missing e &&
 	cat sparse_error_header >expect &&
 	echo e >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse a e 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse a e 2>stderr &&
 	test_must_be_empty stderr &&
 	test_path_is_missing a &&
 	test_path_exists e &&
@@ -125,14 +125,14 @@ test_expect_success 'mv refuses to move non-sparse-to-sparse' '
 	# tracked-to-tracked
 	rm e &&
 	git reset --hard &&
-	test_must_fail git mv a c 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv a c 2>stderr &&
 	test_path_exists a &&
 	test_path_is_missing c &&
 	cat sparse_error_header >expect &&
 	echo c >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse a c 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse a c 2>stderr &&
 	test_must_be_empty stderr &&
 	test_path_is_missing a &&
 	test_path_exists c
@@ -145,12 +145,12 @@ test_expect_success 'mv refuses to move sparse-to-non-sparse' '
 
 	# tracked-to-untracked
 	touch b &&
-	test_must_fail git mv b e 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv b e 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo b >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse b e 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse b e 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -164,7 +164,7 @@ test_expect_success 'recursive mv refuses to move (possible) sparse' '
 	mkdir sub/dir2 &&
 	touch sub/d sub/dir2/e &&
 
-	test_must_fail git mv sub sub2 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub sub2 2>stderr &&
 	cat sparse_error_header >expect &&
 	cat >>expect <<-\EOF &&
 	sub/d
@@ -174,7 +174,7 @@ test_expect_success 'recursive mv refuses to move (possible) sparse' '
 	EOF
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse sub sub2 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub sub2 2>stderr &&
 	test_must_be_empty stderr &&
 	git commit -m "moved sub to sub2" &&
 	git rev-parse HEAD~1:sub >expect &&
@@ -193,7 +193,7 @@ test_expect_success 'recursive mv refuses to move sparse' '
 	mkdir sub/dir2 &&
 	touch sub/dir2/e &&
 
-	test_must_fail git mv sub sub2 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub sub2 2>stderr &&
 	cat sparse_error_header >expect &&
 	cat >>expect <<-\EOF &&
 	sub/dir2/e
@@ -201,7 +201,7 @@ test_expect_success 'recursive mv refuses to move sparse' '
 	EOF
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
-	git mv --sparse sub sub2 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub sub2 2>stderr &&
 	test_must_be_empty stderr &&
 	git commit -m "moved sub to sub2" &&
 	git rev-parse HEAD~1:sub >expect &&
@@ -216,8 +216,9 @@ test_expect_success 'can move files to non-sparse dir' '
 	git sparse-checkout set a b c w !/x y/ &&
 	mkdir -p w x/y &&
 
-	git mv a w/new-a 2>stderr &&
-	git mv b x/y/new-b 2>stderr &&
+	GIT_ADVICE=1 git mv a w/new-a 2>stderr &&
+	test_must_be_empty stderr &&
+	GIT_ADVICE=1 git mv b x/y/new-b 2>stderr &&
 	test_must_be_empty stderr
 '
 
@@ -228,7 +229,7 @@ test_expect_success 'refuse to move file to non-skip-worktree sparse path' '
 	git sparse-checkout set a !/x y/ !x/y/z &&
 	mkdir -p x/y/z &&
 
-	test_must_fail git mv a x/y/z/new-a 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv a x/y/z/new-a 2>stderr &&
 	echo x/y/z/new-a | cat sparse_error_header - sparse_hint >expect &&
 	test_cmp expect stderr
 '
@@ -237,7 +238,7 @@ test_expect_success 'refuse to move out-of-cone directory without --sparse' '
 	test_when_finished "cleanup_sparse_checkout" &&
 	setup_sparse_checkout &&
 
-	test_must_fail git mv folder1 sub 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv folder1 sub 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo folder1/file1 >>expect &&
 	cat sparse_hint >>expect &&
@@ -248,7 +249,7 @@ test_expect_success 'can move out-of-cone directory with --sparse' '
 	test_when_finished "cleanup_sparse_checkout" &&
 	setup_sparse_checkout &&
 
-	git mv --sparse folder1 sub 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse folder1 sub 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_dir sub/folder1 &&
@@ -259,7 +260,7 @@ test_expect_success 'refuse to move out-of-cone file without --sparse' '
 	test_when_finished "cleanup_sparse_checkout" &&
 	setup_sparse_checkout &&
 
-	test_must_fail git mv folder1/file1 sub 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv folder1/file1 sub 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo folder1/file1 >>expect &&
 	cat sparse_hint >>expect &&
@@ -270,7 +271,7 @@ test_expect_success 'can move out-of-cone file with --sparse' '
 	test_when_finished "cleanup_sparse_checkout" &&
 	setup_sparse_checkout &&
 
-	git mv --sparse folder1/file1 sub 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse folder1/file1 sub 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_file sub/file1
@@ -284,7 +285,7 @@ test_expect_success 'refuse to move sparse file to existing destination' '
 	git add folder1 sub/file1 &&
 	git sparse-checkout set --cone sub &&
 
-	test_must_fail git mv --sparse folder1/file1 sub 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv --sparse folder1/file1 sub 2>stderr &&
 	echo "fatal: destination exists, source=folder1/file1, destination=sub/file1" >expect &&
 	test_cmp expect stderr
 '
@@ -298,7 +299,7 @@ test_expect_success 'move sparse file to existing destination with --force and -
 	git add folder1 sub/file1 &&
 	git sparse-checkout set --cone sub &&
 
-	git mv --sparse --force folder1/file1 sub 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse --force folder1/file1 sub 2>stderr &&
 	test_must_be_empty stderr &&
 	echo "overwrite" >expect &&
 	test_cmp expect sub/file1
@@ -308,13 +309,13 @@ test_expect_success 'move clean path from in-cone to out-of-cone' '
 	test_when_finished "cleanup_sparse_checkout" &&
 	setup_sparse_checkout &&
 
-	test_must_fail git mv sub/d folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/d folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/d" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse sub/d folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub/d folder1 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_missing sub/d &&
@@ -330,18 +331,18 @@ test_expect_success 'move clean path from in-cone to out-of-cone overwrite' '
 	echo "sub/file1 overwrite" >sub/file1 &&
 	git add sub/file1 &&
 
-	test_must_fail git mv sub/file1 folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/file1 folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/file1" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	test_must_fail git mv --sparse sub/file1 folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv --sparse sub/file1 folder1 2>stderr &&
 	echo "fatal: destination exists in the index, source=sub/file1, destination=folder1/file1" \
 	>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse -f sub/file1 folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse -f sub/file1 folder1 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_missing sub/file1 &&
@@ -366,18 +367,18 @@ test_expect_success 'move clean path from in-cone to out-of-cone file overwrite'
 	echo "sub/file1 overwrite" >sub/file1 &&
 	git add sub/file1 &&
 
-	test_must_fail git mv sub/file1 folder1/file1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/file1 folder1/file1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/file1" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	test_must_fail git mv --sparse sub/file1 folder1/file1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv --sparse sub/file1 folder1/file1 2>stderr &&
 	echo "fatal: destination exists in the index, source=sub/file1, destination=folder1/file1" \
 	>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse -f sub/file1 folder1/file1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse -f sub/file1 folder1/file1 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_missing sub/file1 &&
@@ -403,19 +404,19 @@ test_expect_success 'move directory with one of the files overwrite' '
 	echo test >sub/dir/file1 &&
 	git add sub/dir/file1 &&
 
-	test_must_fail git mv sub/dir folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/dir folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/dir/e" >>expect &&
 	echo "folder1/dir/file1" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	test_must_fail git mv --sparse sub/dir folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv --sparse sub/dir folder1 2>stderr &&
 	echo "fatal: destination exists in the index, source=sub/dir/file1, destination=folder1/dir/file1" \
 	>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse -f sub/dir folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse -f sub/dir folder1 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_missing sub/dir/file1 &&
@@ -438,13 +439,13 @@ test_expect_success 'move dirty path from in-cone to out-of-cone' '
 	setup_sparse_checkout &&
 	echo "modified" >>sub/d &&
 
-	test_must_fail git mv sub/d folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/d folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/d" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse sub/d folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub/d folder1 2>stderr &&
 	cat dirty_error_header >expect &&
 	echo "folder1/d" >>expect &&
 	cat dirty_hint >>expect &&
@@ -462,13 +463,13 @@ test_expect_success 'move dir from in-cone to out-of-cone' '
 	setup_sparse_checkout &&
 	mkdir sub/dir/deep &&
 
-	test_must_fail git mv sub/dir folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/dir folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/dir/e" >>expect &&
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse sub/dir folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub/dir folder1 2>stderr &&
 	test_must_be_empty stderr &&
 
 	test_path_is_missing sub/dir &&
@@ -487,7 +488,7 @@ test_expect_success 'move partially-dirty dir from in-cone to out-of-cone' '
 	echo "modified" >>sub/dir/e2 &&
 	echo "modified" >>sub/dir/e3 &&
 
-	test_must_fail git mv sub/dir folder1 2>stderr &&
+	test_env GIT_ADVICE=1 test_must_fail git mv sub/dir folder1 2>stderr &&
 	cat sparse_error_header >expect &&
 	echo "folder1/dir/e" >>expect &&
 	echo "folder1/dir/e2" >>expect &&
@@ -495,7 +496,7 @@ test_expect_success 'move partially-dirty dir from in-cone to out-of-cone' '
 	cat sparse_hint >>expect &&
 	test_cmp expect stderr &&
 
-	git mv --sparse sub/dir folder1 2>stderr &&
+	GIT_ADVICE=1 git mv --sparse sub/dir folder1 2>stderr &&
 	cat dirty_error_header >expect &&
 	echo "folder1/dir/e2" >>expect &&
 	echo "folder1/dir/e3" >>expect &&

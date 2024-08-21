@@ -249,7 +249,7 @@ test_expect_success 'checkout to detach HEAD' '
 	rev=$(git rev-parse --short renamer^) &&
 	git checkout -f renamer &&
 	git clean -f &&
-	git checkout renamer^ 2>messages &&
+	GIT_ADVICE=1 git checkout renamer^ 2>messages &&
 	grep "HEAD is now at $rev" messages &&
 	test_line_count -gt 1 messages &&
 	H=$(git rev-parse --verify HEAD) &&

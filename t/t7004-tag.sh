@@ -1852,7 +1852,7 @@ test_expect_success 'recursive tagging should give advice' '
 	hint: 	git tag -f nested annotated-v4.0^{}
 	hint: Disable this message with "git config advice.nestedTag false"
 	EOF
-	git tag -m nested nested annotated-v4.0 2>actual &&
+	GIT_ADVICE=1 git tag -m nested nested annotated-v4.0 2>actual &&
 	test_cmp expect actual
 '
 
