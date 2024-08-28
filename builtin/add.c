@@ -358,7 +358,7 @@ static int add_files(struct dir_struct *dir, int flags)
 	return exit_status;
 }
 
-int cmd_add(int argc, const char **argv, const char *prefix)
+int cmd_add(int argc, const char **argv, const char *prefix, struct repository *repository UNUSED)
 {
 	int exit_status = 0;
 	struct pathspec pathspec;

@@ -150,7 +150,7 @@ static void mktree_line(char *buf, int nul_term_line, int allow_missing)
 	free(to_free);
 }
 
-int cmd_mktree(int ac, const char **av, const char *prefix)
+int cmd_mktree(int ac, const char **av, const char *prefix, struct repository *repo UNUSED)
 {
 	struct strbuf sb = STRBUF_INIT;
 	struct object_id oid;

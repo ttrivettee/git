@@ -561,7 +561,7 @@ static void load_all(void)
 	}
 }
 
-int cmd_pack_redundant(int argc, const char **argv, const char *prefix UNUSED)
+int cmd_pack_redundant(int argc, const char **argv, const char *prefix UNUSED, struct repository *repo UNUSED)
 {
 	int i;
 	int i_still_use_this = 0;
