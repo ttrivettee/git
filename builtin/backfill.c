@@ -21,14 +21,14 @@
 #include "path-walk.h"
 
 static const char * const builtin_backfill_usage[] = {
-	N_("git backfill [<options>]"),
+	N_("git backfill [--batch-size=<n>]"),
 	NULL
 };
 
 struct backfill_context {
 	struct repository *repo;
 	struct oid_array current_batch;
-	size_t batch_size;
+	size_t min_batch_size;
 };
 
 static void backfill_context_clear(struct backfill_context *ctx)
@@ -72,7 +72,7 @@ static int fill_missing_blobs(const char *path UNUSED,
 			oid_array_append(&ctx->current_batch, &list->oid[i]);
 	}
 
-	if (ctx->current_batch.nr >= ctx->batch_size)
+	if (ctx->current_batch.nr >= ctx->min_batch_size)
 		download_batch(ctx);
 
 	return 0;
@@ -111,9 +111,11 @@ int cmd_backfill(int argc, const char **argv, const char *prefix, struct reposit
 	struct backfill_context ctx = {
 		.repo = repo,
 		.current_batch = OID_ARRAY_INIT,
-		.batch_size = 50000,
+		.min_batch_size = 50000,
 	};
 	struct option options[] = {
+		OPT_INTEGER(0, "min-batch-size", &ctx.min_batch_size,
+			    N_("Minimum number of objects to request at a time")),
 		OPT_END(),
 	};
 

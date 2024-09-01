@@ -9,7 +9,7 @@ git-backfill - Download missing objects in a partial clone
 SYNOPSIS
 --------
 [verse]
-'git backfill' [<options>]
+'git backfill' [--batch-size=<n>]
 
 DESCRIPTION
 -----------
@@ -44,6 +44,15 @@ time.
 
 By default, `git backfill` downloads all blobs reachable from the `HEAD`
 commit. This set can be restricted or expanded using various options.
+
+OPTIONS
+-------
+
+--min-batch-size=<n>::
+	Specify a minimum size for a batch of missing objects to request
+	from the server. This size may be exceeded by the last set of
+	blobs seen at a given path. The default minimum batch size is
+	50,000.
 
 SEE ALSO
 --------
