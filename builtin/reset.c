@@ -7,8 +7,9 @@
  *
  * Copyright (c) 2005, 2006 Linus Torvalds and Junio C Hamano
  */
-
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
+#include "repository.h"
 #include "advice.h"
 #include "config.h"
 #include "environment.h"

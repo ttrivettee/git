@@ -5,7 +5,9 @@
  *
  * Based on git-verify-tag.sh
  */
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
+#include "repository.h"
 #include "config.h"
 #include "gettext.h"
 #include "tag.h"

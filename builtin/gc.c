@@ -9,7 +9,7 @@
  *
  * Copyright (c) 2006 Shawn O. Pearce
  */
-
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
 #include "abspath.h"
 #include "date.h"

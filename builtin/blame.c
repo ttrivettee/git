@@ -4,7 +4,7 @@
  * Copyright (c) 2006, 2014 by its authors
  * See COPYING for licensing conditions
  */
-
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
 #include "config.h"
 #include "color.h"

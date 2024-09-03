@@ -7,6 +7,7 @@
  * and Carlos Rica <jasampler@gmail.com> that was itself based on
  * git-tag.sh and mktag.c by Linus Torvalds.
  */
+#define USE_THE_REPOSITORY_VARIABLE
 
 #include "builtin.h"
 #include "config.h"

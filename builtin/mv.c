@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2006 Johannes Schindelin
  */
+#define USE_THE_REPOSITORY_VARIABLE
 
 #include "builtin.h"
 #include "abspath.h"

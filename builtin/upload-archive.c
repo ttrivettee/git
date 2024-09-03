@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2006 Franck Bui-Huu
  */
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
 #include "archive.h"
 #include "path.h"

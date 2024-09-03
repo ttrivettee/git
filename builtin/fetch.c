@@ -1,6 +1,7 @@
 /*
  * "git fetch"
  */
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
 #include "advice.h"
 #include "config.h"

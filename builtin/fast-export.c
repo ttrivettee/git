@@ -3,7 +3,9 @@
  *
  * Copyright (C) 2007 Johannes E. Schindelin
  */
+#define USE_THE_REPOSITORY_VARIABLE
 #include "builtin.h"
+#include "repository.h"
 #include "config.h"
 #include "gettext.h"
 #include "hex.h"
