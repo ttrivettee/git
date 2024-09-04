@@ -211,14 +211,37 @@ test_expect_success 'topic, not base' '
 	0:COMMIT::$(git rev-parse topic)
 	1:TREE::$(git rev-parse topic^{tree})
 	2:TREE:right/:$(git rev-parse topic:right)
-	3:BLOB:right/d:$(git rev-parse topic:right/d)
+	3:BLOB:right/d:$(git rev-parse topic:right/d):UNINTERESTING
 	4:BLOB:right/c:$(git rev-parse topic:right/c)
-	5:TREE:left/:$(git rev-parse topic:left)
-	6:BLOB:left/b:$(git rev-parse topic:left/b)
-	7:BLOB:a:$(git rev-parse topic:a)
+	5:TREE:left/:$(git rev-parse topic:left):UNINTERESTING
+	6:BLOB:left/b:$(git rev-parse topic:left/b):UNINTERESTING
+	7:BLOB:a:$(git rev-parse topic:a):UNINTERESTING
 	blobs:4
 	commits:1
 	tags:0
+	trees:3
+	EOF
+
+	test_cmp_sorted expect out
+'
+
+test_expect_success 'fourth, blob-tag2, not base' '
+	test-tool path-walk -- fourth blob-tag2 --not base >out &&
+
+	cat >expect <<-EOF &&
+	0:COMMIT::$(git rev-parse topic)
+	1:TAG:/tags:$(git rev-parse fourth)
+	2:BLOB:/tagged-blobs:$(git rev-parse refs/tags/blob-tag2^{})
+	3:TREE::$(git rev-parse topic^{tree})
+	4:TREE:right/:$(git rev-parse topic:right)
+	5:BLOB:right/d:$(git rev-parse base~1:right/d):UNINTERESTING
+	6:BLOB:right/c:$(git rev-parse topic:right/c)
+	7:TREE:left/:$(git rev-parse base~1:left):UNINTERESTING
+	8:BLOB:left/b:$(git rev-parse base~1:left/b):UNINTERESTING
+	9:BLOB:a:$(git rev-parse base~1:a):UNINTERESTING
+	blobs:5
+	commits:1
+	tags:1
 	trees:3
 	EOF
 
@@ -230,10 +253,10 @@ test_expect_success 'topic, not base, only blobs' '
 		-- topic --not base >out &&
 
 	cat >expect <<-EOF &&
-	0:BLOB:right/d:$(git rev-parse topic:right/d)
+	0:BLOB:right/d:$(git rev-parse topic:right/d):UNINTERESTING
 	1:BLOB:right/c:$(git rev-parse topic:right/c)
-	2:BLOB:left/b:$(git rev-parse topic:left/b)
-	3:BLOB:a:$(git rev-parse topic:a)
+	2:BLOB:left/b:$(git rev-parse topic:left/b):UNINTERESTING
+	3:BLOB:a:$(git rev-parse topic:a):UNINTERESTING
 	blobs:4
 	commits:0
 	tags:0
@@ -267,7 +290,7 @@ test_expect_success 'topic, not base, only trees' '
 	cat >expect <<-EOF &&
 	0:TREE::$(git rev-parse topic^{tree})
 	1:TREE:right/:$(git rev-parse topic:right)
-	2:TREE:left/:$(git rev-parse topic:left)
+	2:TREE:left/:$(git rev-parse topic:left):UNINTERESTING
 	commits:0
 	blobs:0
 	tags:0
@@ -282,21 +305,42 @@ test_expect_success 'topic, not base, boundary' '
 
 	cat >expect <<-EOF &&
 	0:COMMIT::$(git rev-parse topic)
-	0:COMMIT::$(git rev-parse base~1)
+	0:COMMIT::$(git rev-parse base~1):UNINTERESTING
 	1:TREE::$(git rev-parse topic^{tree})
-	1:TREE::$(git rev-parse base~1^{tree})
+	1:TREE::$(git rev-parse base~1^{tree}):UNINTERESTING
 	2:TREE:right/:$(git rev-parse topic:right)
-	2:TREE:right/:$(git rev-parse base~1:right)
-	3:BLOB:right/d:$(git rev-parse base~1:right/d)
-	4:BLOB:right/c:$(git rev-parse base~1:right/c)
+	2:TREE:right/:$(git rev-parse base~1:right):UNINTERESTING
+	3:BLOB:right/d:$(git rev-parse base~1:right/d):UNINTERESTING
+	4:BLOB:right/c:$(git rev-parse base~1:right/c):UNINTERESTING
 	4:BLOB:right/c:$(git rev-parse topic:right/c)
-	5:TREE:left/:$(git rev-parse base~1:left)
-	6:BLOB:left/b:$(git rev-parse base~1:left/b)
-	7:BLOB:a:$(git rev-parse base~1:a)
+	5:TREE:left/:$(git rev-parse base~1:left):UNINTERESTING
+	6:BLOB:left/b:$(git rev-parse base~1:left/b):UNINTERESTING
+	7:BLOB:a:$(git rev-parse base~1:a):UNINTERESTING
 	blobs:5
 	commits:2
 	tags:0
 	trees:5
+	EOF
+
+	test_cmp_sorted expect out
+'
+
+test_expect_success 'topic, not base, boundary with pruning' '
+	test-tool path-walk --prune -- --boundary topic --not base >out &&
+
+	cat >expect <<-EOF &&
+	0:COMMIT::$(git rev-parse topic)
+	0:COMMIT::$(git rev-parse base~1):UNINTERESTING
+	1:TREE::$(git rev-parse topic^{tree})
+	1:TREE::$(git rev-parse base~1^{tree}):UNINTERESTING
+	2:TREE:right/:$(git rev-parse topic:right)
+	2:TREE:right/:$(git rev-parse base~1:right):UNINTERESTING
+	3:BLOB:right/c:$(git rev-parse base~1:right/c):UNINTERESTING
+	3:BLOB:right/c:$(git rev-parse topic:right/c)
+	blobs:2
+	commits:2
+	tags:0
+	trees:4
 	EOF
 
 	test_cmp_sorted expect out
@@ -309,15 +353,12 @@ test_expect_success 'trees are reported exactly once' '
 		cd unique-trees &&
 		mkdir initial &&
 		test_commit initial/file &&
-
 		git switch -c move-to-top &&
 		git mv initial/file.t ./ &&
 		test_tick &&
 		git commit -m moved &&
-
 		git update-ref refs/heads/other HEAD
 	) &&
-
 	test-tool -C unique-trees path-walk -- --all >out &&
 	tree=$(git -C unique-trees rev-parse HEAD:) &&
 	grep "$tree" out >out-filtered &&
