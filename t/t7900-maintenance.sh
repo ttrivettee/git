@@ -245,6 +245,48 @@ test_expect_success 'prefetch multiple remotes' '
 	test_subcommand git fetch remote2 $fetchargs <skip-remote1.txt
 '
 
+test_expect_success 'prefetch respects remote.*.prefetch config' '
+	test_create_repo prefetch-test-config &&
+	(
+		cd prefetch-test-config &&
+		test_commit initial &&
+		test_create_repo clone1 &&
+		test_create_repo clone2 &&
+		test_create_repo clone3 &&
+
+		git remote add remote1 "file://$(pwd)/clone1" &&
+		git remote add remote2 "file://$(pwd)/clone2" &&
+		git remote add remote3 "file://$(pwd)/clone3" &&
+
+		git config remote.remote1.prefetch false &&
+		git config remote.remote2.prefetch true &&
+		# remote3 is left unset
+
+		# Make changes in all clones
+		git -C clone1 switch -c one &&
+		git -C clone2 switch -c two &&
+		git -C clone3 switch -c three &&
+		test_commit -C clone1 one &&
+		test_commit -C clone2 two &&
+		test_commit -C clone3 three &&
+
+		# Run maintenance prefetch task
+		GIT_TRACE2_EVENT="$(pwd)/prefetch.txt" git maintenance run --task=prefetch 2>/dev/null &&
+
+		# Check that if remotes were prefetched properly
+		fetchargs="--prefetch --prune --no-tags --no-write-fetch-head --recurse-submodules=no --quiet" &&
+		test_subcommand ! git fetch remote1 $fetchargs <prefetch.txt &&
+		test_subcommand git fetch remote2 $fetchargs <prefetch.txt &&
+		test_subcommand git fetch remote3 $fetchargs <prefetch.txt &&
+
+		# Verify that changes are in the prefetch refs for remote2 and remote3, but not remote1
+		test_must_fail git rev-parse refs/prefetch/remotes/remote1/one &&
+		git fetch --all &&
+		test_cmp_rev refs/remotes/remote2/two refs/prefetch/remotes/remote2/two &&
+		test_cmp_rev refs/remotes/remote3/three refs/prefetch/remotes/remote3/three
+	)
+'
+
 test_expect_success 'loose-objects task' '
 	# Repack everything so we know the state of the object dir
 	git repack -adk &&

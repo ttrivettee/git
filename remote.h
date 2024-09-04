@@ -77,6 +77,8 @@ struct remote {
 
 	struct refspec fetch;
 
+	int prefetch_enabled;
+
 	/*
 	 * The setting for whether to fetch tags (as a separate rule from the
 	 * configured refspecs);
