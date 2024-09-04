@@ -97,9 +97,10 @@ commit-graph::
 
 prefetch::
 	The `prefetch` task updates the object directory with the latest
-	objects from all registered remotes. For each remote, a `git fetch`
-	command is run. The configured refspec is modified to place all
-	requested refs within `refs/prefetch/`. Also, tags are not updated.
+	objects from all registered remotes unless they've disabled prefetch
+	using `remote.<remote>.prefetch` set to `false`. For each such remote,
+	a `git fetch` command is run. The configured refspec is modified to place
+	all requested refs within `refs/prefetch/`. Also, tags are not updated.
 +
 This is done to avoid disrupting the remote-tracking branches. The end users
 expect these refs to stay unmoved unless they initiate a fetch.  However,
