@@ -78,6 +78,15 @@ struct remote {
 	struct refspec fetch;
 
 	/*
+	 * The setting for whether to prefetch from a remote
+	 * when a fetch is invoked with a prefetch flag.
+	 *  -1 = unset
+	 *   0 = don't prefetch from this remote
+	 *   1 = prefetch from this remote
+	 */
+	int prefetch;
+
+	/*
 	 * The setting for whether to fetch tags (as a separate rule from the
 	 * configured refspecs);
 	 * -1 to never fetch tags

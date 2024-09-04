@@ -1027,6 +1027,9 @@ static int fetch_remote(struct remote *remote, void *cbdata)
 	if (remote->skip_default_update)
 		return 0;
 
+	if (!remote->prefetch)
+		return 0;
+
 	child.git_cmd = 1;
 	strvec_pushl(&child.args, "fetch", remote->name,
 		     "--prefetch", "--prune", "--no-tags",

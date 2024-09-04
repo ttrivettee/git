@@ -33,6 +33,11 @@ remote.<name>.fetch::
 	The default set of "refspec" for linkgit:git-fetch[1]. See
 	linkgit:git-fetch[1].
 
+remote.<name>.prefetch::
+	If false, refs from the remote would not be prefetched for
+	the prefetch task in linkgit:git-maintenance[1]. If not set,
+	the value is assumed to be true.
+
 remote.<name>.push::
 	The default set of "refspec" for linkgit:git-push[1]. See
 	linkgit:git-push[1].
