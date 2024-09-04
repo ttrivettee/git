@@ -2,6 +2,7 @@
 #define COMMIT_H
 
 #include "object.h"
+#include "repository.h"
 
 struct signature_check;
 struct strbuf;
@@ -253,7 +254,7 @@ struct oid_array;
 struct ref;
 int for_each_commit_graft(each_commit_graft_fn, void *);
 
-int interactive_add(const char **argv, const char *prefix, int patch);
+int interactive_add(const char **argv, const char *prefix, int patch, struct repository *repo);
 
 struct commit_extra_header {
 	struct commit_extra_header *next;
