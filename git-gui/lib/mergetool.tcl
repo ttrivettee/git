@@ -272,8 +272,24 @@ proc merge_resolve_tool2 {} {
 		}
 	}
 	default {
-		error_popup [mc "Unsupported merge tool '%s'" $tool]
-		return
+		set tool_cmd [get_config mergetool.$tool.cmd]
+		if {$tool_cmd ne {}} {
+			if {([string first {[} $tool_cmd] != -1) || ([string first {]} $tool_cmd] != -1)} {
+				error_popup [mc "Unable to process square brackets in mergetool.cmd configuration option.\
+								Please remove the square brackets."]
+				return
+			} else {
+				foreach command_part $tool_cmd {
+					lappend cmdline [subst -nobackslashes -nocommands $command_part]
+				}
+			}
+		} else {
+			error_popup [mc "Unsupported merge tool '%s'.\n
+							Currently unsupported tools can be added and used as unsupported tools with degraded support\
+							by adding the command of the tool to the \"mergetool.cmd\" option in the config.
+							See the configuration documentation for more details." $tool]
+			return
+		}
 	}
 	}
 
