@@ -38,6 +38,7 @@
 #include "trace.h"
 #include "trace2.h"
 #include "bundle-uri.h"
+#include "wildmatch.h"
 
 #define FORCED_UPDATES_DELAY_WARNING_IN_MS (10 * 1000)
 
@@ -485,6 +486,49 @@ static void filter_prefetch_refspec(struct refspec *rs)
 	}
 }
 
+static int matches_prefetch_refs(const char *refname, const struct string_list *prefetch_refs)
+{
+	int i;
+	int has_positive = 0;
+	int matched_positive = 0;
+	int matched_negative = 0;
+
+	for (i = 0; i < prefetch_refs->nr; i++) {
+		const char *pattern = prefetch_refs->items[i].string;
+		int is_negative = (*pattern == '!');
+
+		if (is_negative)
+			pattern++;
+		else
+			has_positive = 1;
+
+		if (wildmatch(pattern, refname, 0) == 0) {
+			if (is_negative)
+				matched_negative = 1;
+			else
+				matched_positive = 1;
+		}
+	}
+
+	if (!has_positive)
+		return !matched_negative;
+
+	return matched_positive && !matched_negative;
+}
+
+
+static void ref_remove(struct ref **head, struct ref *to_remove)
+{
+	struct ref **pp, *p;
+
+	for (pp = head; (p = *pp) != NULL; pp = &p->next) {
+		if (p == to_remove) {
+			*pp = p->next;
+			return;
+		}
+	}
+}
+
 static struct ref *get_ref_map(struct remote *remote,
 			       const struct ref *remote_refs,
 			       struct refspec *rs,
@@ -502,6 +546,7 @@ static struct ref *get_ref_map(struct remote *remote,
 	int existing_refs_populated = 0;
 
 	filter_prefetch_refspec(rs);
+
 	if (remote)
 		filter_prefetch_refspec(&remote->fetch);
 
@@ -609,6 +654,22 @@ static struct ref *get_ref_map(struct remote *remote,
 		ref_map = apply_negative_refspecs(ref_map, rs);
 	else
 		ref_map = apply_negative_refspecs(ref_map, &remote->fetch);
+
+	/**
+	 * Filter out advertised refs that we don't want to fetch during
+	 * prefetch if a prefetchref config is set
+	 */
+	if (prefetch && remote->prefetch_refs.nr) {
+		struct ref *ref, *next;
+		for (ref = ref_map; ref; ref = next) {
+			next = ref->next;
+
+			if (!matches_prefetch_refs(ref->name, &remote->prefetch_refs)) {
+					ref_remove(&ref_map, ref);
+					free_one_ref(ref);
+			}
+		}
+	}
 
 	ref_map = ref_remove_duplicates(ref_map);
 
