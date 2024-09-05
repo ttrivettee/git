@@ -52,4 +52,24 @@ test_size 'big recent pack size with --path-walk' '
 	wc -c <out
 '
 
+test_perf 'full repack' '
+	git repack -adf --no-write-bitmap-index
+'
+
+test_size 'full repack size' '
+	du -a .git/objects/pack | \
+	   awk "{ print \$1; }" | \
+		       sort -nr | head -n 1
+'
+
+test_perf 'full repack with --path-walk' '
+	git repack -adf --no-write-bitmap-index --path-walk
+'
+
+test_size 'full repack size with --path-walk' '
+	du -a .git/objects/pack | \
+	   awk "{ print \$1; }" | \
+		       sort -nr | head -n 1
+'
+
 test_done
