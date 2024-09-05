@@ -306,7 +306,7 @@ int walk_objects_by_path(struct path_walk_info *info)
 
 	/* Track all commits. */
 	if (info->commits)
-		ret = info->path_fn("", &commit_list->oids, OBJ_COMMIT,
+		ret = info->path_fn("initial", &commit_list->oids, OBJ_COMMIT,
 				    info->path_fn_data);
 	oid_array_clear(&commit_list->oids);
 	free(commit_list);
