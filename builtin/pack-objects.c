@@ -4534,12 +4534,14 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 
 	disable_replace_refs();
 
-	path_walk = git_env_bool("GIT_TEST_PACK_PATH_WALK", 0);
+	path_walk = git_env_bool("GIT_TEST_PACK_PATH_WALK", -1);
 	sparse = git_env_bool("GIT_TEST_PACK_SPARSE", -1);
 	if (the_repository->gitdir) {
 		prepare_repo_settings(the_repository);
 		if (sparse < 0)
 			sparse = the_repository->settings.pack_use_sparse;
+		if (path_walk < 0)
+			path_walk = the_repository->settings.pack_use_path_walk;
 		if (the_repository->settings.pack_use_multi_pack_reuse)
 			allow_pack_reuse = MULTI_PACK_REUSE;
 	}
