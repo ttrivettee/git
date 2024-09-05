@@ -245,6 +245,76 @@ test_expect_success 'prefetch multiple remotes' '
 	test_subcommand git fetch remote2 $fetchargs <skip-remote1.txt
 '
 
+test_expect_success 'prefetch only acts on remote.<name>.prefetchref refs if present' '
+	test_create_repo prefetch-test-mixed-patterns &&
+	(
+		cd prefetch-test-mixed-patterns &&
+		test_commit initial &&
+		git clone . clone1 &&
+		git clone . clone2 &&
+
+		git remote add remote1 "file://$(pwd)/clone1" &&
+		git remote add remote2 "file://$(pwd)/clone2" &&
+
+		# Set single prefetchref pattern for remote1 and multiple for remote2
+		git config remote.remote1.prefetchref "refs/heads/foo" &&
+		git config remote.remote2.prefetchref "refs/heads/feature/* refs/heads/topic" &&
+
+		# Create branches in clone1 and push
+		(
+			cd clone1 &&
+			git checkout -b foo &&
+			test_commit foo-commit &&
+			git checkout -b feature/a &&
+			test_commit feature-a-commit &&
+			git checkout -b other &&
+			test_commit other-commit &&
+			git push origin foo feature/a other
+		) &&
+
+		# Create branches in clone2 and push
+		(
+			cd clone2 &&
+			git checkout -b topic &&
+			test_commit master-commit &&
+			git checkout -b feature/x &&
+			test_commit feature-x-commit &&
+			git checkout -b feature/y &&
+			test_commit feature-y-commit &&
+			git checkout -b dev &&
+			test_commit dev-commit &&
+			git push origin topic feature/x feature/y dev
+		) &&
+
+		# Run maintenance prefetch task
+		GIT_TRACE2_EVENT="$(pwd)/prefetch.txt" git maintenance run --task=prefetch 2>/dev/null &&
+
+		# Check that only specified refs were prefetched
+		fetchargs="--prefetch --prune --no-tags --no-write-fetch-head --recurse-submodules=no --quiet" &&
+		test_subcommand git fetch remote1 $fetchargs <prefetch.txt &&
+		test_subcommand git fetch remote2 $fetchargs <prefetch.txt &&
+		ls -R .git/refs/prefetch &&
+
+		# Verify that only specified refs are in the prefetch refs for remote1
+		 git rev-parse refs/prefetch/remotes/remote1/foo &&
+		test_must_fail git rev-parse refs/prefetch/remotes/remote1/feature/a &&
+		test_must_fail git rev-parse refs/prefetch/remotes/remote1/other &&
+
+				# Verify that only specified refs are in the prefetch refs for remote2
+		git rev-parse refs/prefetch/remotes/remote2/feature/x &&
+		git rev-parse refs/prefetch/remotes/remote2/feature/y &&
+		git rev-parse refs/prefetch/remotes/remote2/topic &&
+		test_must_fail git rev-parse refs/prefetch/remotes/remote2/dev &&
+
+		# Fetch all refs and compare
+		git fetch --all &&
+		test_cmp_rev refs/remotes/remote1/foo refs/prefetch/remotes/remote1/foo &&
+		test_cmp_rev refs/remotes/remote2/feature/x refs/prefetch/remotes/remote2/feature/x &&
+		test_cmp_rev refs/remotes/remote2/feature/y refs/prefetch/remotes/remote2/feature/y &&
+		test_cmp_rev refs/remotes/remote2/topic refs/prefetch/remotes/remote2/topic
+	)
+'
+
 test_expect_success 'loose-objects task' '
 	# Repack everything so we know the state of the object dir
 	git repack -adk &&

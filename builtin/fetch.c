@@ -434,6 +434,30 @@ static void find_non_local_tags(const struct ref *refs,
 	oidset_clear(&fetch_oids);
 }
 
+static void apply_prefetch_refspec(struct remote *remote, struct refspec *rs)
+{
+	if (remote->prefetch_refs.nr > 0) {
+		int i;
+		for (i = 0; i < remote->prefetch_refs.nr; i++) {
+			const char *src = remote->prefetch_refs.items[i].string;
+			struct strbuf dst = STRBUF_INIT;
+
+			strbuf_addf(&dst, "refs/prefetch/%s/", remote->name);
+			if (starts_with(src, "refs/heads/")) {
+				strbuf_addstr(&dst, src + 11);
+			} else if (starts_with(src, "refs/")) {
+				strbuf_addstr(&dst, src + 5);
+			} else {
+				strbuf_addstr(&dst, src);
+			}
+
+			refspec_appendf(rs, "%s:%s", src, dst.buf);
+			strbuf_release(&dst);
+		}
+	}
+}
+
+
 static void filter_prefetch_refspec(struct refspec *rs)
 {
 	int i;
@@ -502,8 +526,11 @@ static struct ref *get_ref_map(struct remote *remote,
 	int existing_refs_populated = 0;
 
 	filter_prefetch_refspec(rs);
-	if (remote)
+	if (remote) {
 		filter_prefetch_refspec(&remote->fetch);
+		if (prefetch)
+			apply_prefetch_refspec(remote, rs);
+	}
 
 	if (rs->nr) {
 		struct refspec *fetch_refspec;
