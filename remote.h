@@ -5,6 +5,7 @@
 #include "hashmap.h"
 #include "refspec.h"
 #include "strvec.h"
+#include "string-list.h"
 
 struct option;
 struct transport_ls_refs_options;
@@ -76,6 +77,8 @@ struct remote {
 	struct refspec push;
 
 	struct refspec fetch;
+
+	struct string_list prefetch_refs;
 
 	/*
 	 * The setting for whether to fetch tags (as a separate rule from the
