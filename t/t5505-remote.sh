@@ -1131,7 +1131,9 @@ test_expect_success 'remote set-branches' '
 	+refs/heads/next:refs/remotes/scratch/next
 	+refs/heads/seen:refs/remotes/scratch/seen
 	EOF
-
+	cat  <<-\EOF >expect.replace-missing &&
+	+refs/heads/topic:refs/remotes/scratch/topic
+	EOF
 	git clone .git/ setbranches &&
 	(
 		cd setbranches &&
@@ -1161,14 +1163,20 @@ test_expect_success 'remote set-branches' '
 
 		git remote set-branches --add scratch seen &&
 		git config --get-all remote.scratch.fetch >config-result &&
-		sort <config-result >../actual.respect-ffonly
+		sort <config-result >../actual.respect-ffonly &&
+
+		git config --unset-all remote.scratch.fetch &&
+		git remote set-branches scratch topic &&
+		git config --get-all remote.scratch.fetch \
+					>../actual.replace-missing
 	) &&
 	test_cmp expect.initial actual.initial &&
 	test_cmp expect.add actual.add &&
 	test_cmp expect.replace actual.replace &&
 	test_cmp expect.add-two actual.add-two &&
 	test_cmp expect.setup-ffonly actual.setup-ffonly &&
-	test_cmp expect.respect-ffonly actual.respect-ffonly
+	test_cmp expect.respect-ffonly actual.respect-ffonly &&
+	test_cmp expect.replace-missing actual.replace-missing
 '
 
 test_expect_success 'remote set-branches with --mirror' '

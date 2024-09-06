@@ -1567,8 +1567,12 @@ static int update(int argc, const char **argv, const char *prefix)
 
 static int remove_all_fetch_refspecs(const char *key)
 {
-	return git_config_set_multivar_gently(key, NULL, NULL,
-					      CONFIG_FLAGS_MULTI_REPLACE);
+	int res = git_config_set_multivar_gently(key, NULL, NULL,
+						 CONFIG_FLAGS_MULTI_REPLACE);
+	if (res == CONFIG_NOTHING_SET)
+		res = 0;
+
+	return res;
 }
 
 static void add_branches(struct remote *remote, const char **branches,
