@@ -3151,8 +3151,7 @@ static int should_attempt_deltas(struct object_entry *entry)
 		 */
 		return 0;
 
-	if (!entry->type_valid ||
-		oe_size_less_than(&to_pack, entry, 50))
+	if (!entry->type_valid || oe_size_less_than(&to_pack, entry, 50))
 		return 0;
 
 	if (entry->no_try_delta)
@@ -3162,14 +3161,12 @@ static int should_attempt_deltas(struct object_entry *entry)
 		if (oe_type(entry) < 0)
 			die(_("unable to get type of object %s"),
 				oid_to_hex(&entry->idx.oid));
-	} else {
-		if (oe_type(entry) < 0) {
-			/*
-			 * This object is not found, but we
-			 * don't have to include it anyway.
-			 */
-			return 0;
-		}
+	} else if (oe_type(entry) < 0) {
+		/*
+		 * This object is not found, but we
+		 * don't have to include it anyway.
+		 */
+		return 0;
 	}
 
 	return 1;
