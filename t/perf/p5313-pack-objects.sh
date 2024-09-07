@@ -28,6 +28,14 @@ test_size 'thin pack size' '
 	wc -c <out
 '
 
+test_perf 'thin pack with --full-name-hash' '
+	git pack-objects --thin --stdout --revs --sparse --full-name-hash <in-thin >out
+'
+
+test_size 'thin pack size with --full-name-hash' '
+	wc -c <out
+'
+
 test_perf 'thin pack with --path-walk' '
 	git pack-objects --thin --stdout --revs --sparse --path-walk <in-thin >out
 '
@@ -44,6 +52,14 @@ test_size 'big recent pack size' '
 	wc -c <out
 '
 
+test_perf 'big recent pack with --full-name-hash' '
+	git pack-objects --stdout --revs --full-name-hash <in-big-recent >out
+'
+
+test_size 'big recent pack size with --full-name-hash' '
+	wc -c <out
+'
+
 test_perf 'big recent pack with --path-walk' '
 	git pack-objects --stdout --revs --path-walk <in-big-recent >out
 '
@@ -57,6 +73,16 @@ test_perf 'full repack' '
 '
 
 test_size 'full repack size' '
+	du -a .git/objects/pack | \
+	   awk "{ print \$1; }" | \
+		       sort -nr | head -n 1
+'
+
+test_perf 'full repack with --full-name-hash' '
+	git repack -adf --no-write-bitmap-index --full-name-hash
+'
+
+test_size 'full repack size with --full-name-hash' '
 	du -a .git/objects/pack | \
 	   awk "{ print \$1; }" | \
 		       sort -nr | head -n 1
