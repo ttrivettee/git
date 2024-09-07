@@ -58,6 +58,7 @@ struct pack_objects_args {
 	int no_reuse_object;
 	int quiet;
 	int local;
+	int full_name_hash;
 	struct list_objects_filter_options filter_options;
 };
 
