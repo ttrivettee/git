@@ -23,6 +23,7 @@ struct path_walk_test_data {
 	uintmax_t commit_nr;
 	uintmax_t tree_nr;
 	uintmax_t blob_nr;
+	uintmax_t tag_nr;
 };
 
 static int emit_block(const char *path, struct oid_array *oids,
@@ -47,9 +48,19 @@ static int emit_block(const char *path, struct oid_array *oids,
 		tdata->blob_nr += oids->nr;
 		break;
 
+	case OBJ_TAG:
+		typestr = "TAG";
+		tdata->tag_nr += oids->nr;
+		break;
+
 	default:
 		BUG("we do not understand this type");
 	}
+
+	/* This should never be output during tests. */
+	if (!oids->nr)
+		printf("%"PRIuMAX":%s:%s:EMPTY\n",
+		       tdata->batch_nr, typestr, path);
 
 	for (size_t i = 0; i < oids->nr; i++)
 		printf("%"PRIuMAX":%s:%s:%s\n",
@@ -71,6 +82,8 @@ int cmd__path_walk(int argc, const char **argv)
 			 N_("toggle inclusion of blob objects")),
 		OPT_BOOL(0, "commits", &info.commits,
 			 N_("toggle inclusion of commit objects")),
+		OPT_BOOL(0, "tags", &info.tags,
+			 N_("toggle inclusion of tag objects")),
 		OPT_BOOL(0, "trees", &info.trees,
 			 N_("toggle inclusion of tree objects")),
 		OPT_END(),
@@ -96,8 +109,9 @@ int cmd__path_walk(int argc, const char **argv)
 
 	printf("commits:%" PRIuMAX "\n"
 	       "trees:%" PRIuMAX "\n"
-	       "blobs:%" PRIuMAX "\n",
-	       data.commit_nr, data.tree_nr, data.blob_nr);
+	       "blobs:%" PRIuMAX "\n"
+	       "tags:%" PRIuMAX "\n",
+	       data.commit_nr, data.tree_nr, data.blob_nr, data.tag_nr);
 
 	release_revisions(&revs);
 	return res;
