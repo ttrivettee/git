@@ -132,6 +132,19 @@ static void add_branch(const char *key, const char *branchname,
 	git_config_set_multivar(key, tmp->buf, "^$", 0);
 }
 
+static int check_branch_names(const char **branches)
+{
+	int ret = 0;
+
+	for (const char **b = branches; *b; b++) {
+		if (check_refname_format(*b, REFNAME_ALLOW_ONELEVEL |
+						REFNAME_REFSPEC_PATTERN))
+			ret = error(_("invalid branch name '%s'"), *b);
+	}
+
+	return ret;
+}
+
 static const char mirror_advice[] =
 N_("--mirror is dangerous and deprecated; please\n"
    "\t use --mirror=fetch or --mirror=push instead");
@@ -202,6 +215,9 @@ static int add(int argc, const char **argv, const char *prefix)
 
 	if (!valid_remote_name(name))
 		die(_("'%s' is not a valid remote name"), name);
+
+	if (check_branch_names(track.v))
+		exit(128);
 
 	strbuf_addf(&buf, "remote.%s.url", name);
 	git_config_set(buf.buf, url);
@@ -1600,6 +1616,9 @@ static int set_remote_branches(const char *remotename, const char **branches,
 		error(_("No such remote '%s'"), remotename);
 		exit(2);
 	}
+
+	if (check_branch_names(branches))
+		exit(128);
 
 	if (!add_mode && remove_all_fetch_refspecs(key.buf)) {
 		error(_("could not remove existing fetch refspec"));

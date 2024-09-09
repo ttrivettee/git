@@ -1195,6 +1195,34 @@ test_expect_success 'remote set-branches with --mirror' '
 	test_cmp expect.replace actual.replace
 '
 
+test_expect_success 'remote set-branches rejects invalid branch name' '
+	git remote add test https://git.example.com/repo &&
+	test_when_finished "git config --unset-all remote.test.fetch; \
+			    git config --unset remote.test.url" &&
+	test_must_fail git remote set-branches test "topic/*" in..valid \
+				feature "b a d" 2>err &&
+	cat >expect <<-EOF &&
+	error: invalid branch name ${SQ}in..valid${SQ}
+	error: invalid branch name ${SQ}b a d${SQ}
+	EOF
+	test_cmp expect err &&
+	git config --get-all remote.test.fetch >actual &&
+	echo "+refs/heads/*:refs/remotes/test/*" >expect &&
+	test_cmp expect actual
+'
+
+test_expect_success 'remote add -t rejects invalid branch name' '
+	test_must_fail git remote add test -t .bad -t "topic/*" -t in:valid \
+				 https://git.example.com/repo 2>err &&
+	cat >expect <<-EOF &&
+	error: invalid branch name ${SQ}.bad${SQ}
+	error: invalid branch name ${SQ}in:valid${SQ}
+	EOF
+	test_cmp expect err &&
+	test_expect_code 1 git config --get-regexp ^remote\\.test\\. >actual &&
+	test_must_be_empty actual
+'
+
 test_expect_success 'new remote' '
 	git remote add someremote foo &&
 	echo foo >expect &&
