@@ -39,6 +39,7 @@ struct path_walk_info {
 	int commits;
 	int trees;
 	int blobs;
+	int tags;
 
 	/**
 	 * Specify a sparse-checkout definition to match our paths to. Do not

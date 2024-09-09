@@ -14,6 +14,7 @@
 #include "revision.h"
 #include "string-list.h"
 #include "strmap.h"
+#include "tag.h"
 #include "trace2.h"
 #include "tree.h"
 #include "tree-walk.h"
@@ -215,6 +216,9 @@ int walk_objects_by_path(struct path_walk_info *info)
 		.paths_to_lists = STRMAP_INIT
 	};
 
+	struct oid_array tagged_tree_list = OID_ARRAY_INIT;
+	struct oid_array tagged_blob_list = OID_ARRAY_INIT;
+
 	trace2_region_enter("path-walk", "commit-walk", info->revs->repo);
 
 	CALLOC_ARRAY(commit_list, 1);
@@ -259,6 +263,60 @@ int walk_objects_by_path(struct path_walk_info *info)
 				    info->path_fn_data);
 	oid_array_clear(&commit_list->oids);
 	free(commit_list);
+
+	if (info->tags) {
+		struct oid_array tags = OID_ARRAY_INIT;
+
+		trace2_region_enter("path-walk", "tag-walk", info->revs->repo);
+
+		/*
+		 * Walk any pending objects at this point, but they should only
+		 * be tags.
+		 */
+		for (size_t i = 0; i < info->revs->pending.nr; i++) {
+			struct object_array_entry *pending = info->revs->pending.objects + i;
+			struct object *obj = pending->item;
+
+			while (obj->type == OBJ_TAG) {
+				struct tag *tag = lookup_tag(info->revs->repo,
+							     &obj->oid);
+				oid_array_append(&tags, &obj->oid);
+				obj = tag->tagged;
+			}
+
+			switch (obj->type) {
+			case OBJ_TREE:
+				oid_array_append(&tagged_tree_list, &obj->oid);
+				break;
+
+			case OBJ_BLOB:
+				oid_array_append(&tagged_blob_list, &obj->oid);
+				break;
+
+			case OBJ_COMMIT:
+				/* skip */
+				break;
+
+			default:
+				BUG("should not see any other type here");
+			}
+		}
+
+		info->path_fn("initial", &tags, OBJ_TAG, info->path_fn_data);
+
+		if (tagged_tree_list.nr)
+			info->path_fn("tagged-trees", &tagged_tree_list, OBJ_TREE,
+				      info->path_fn_data);
+		if (tagged_blob_list.nr)
+			info->path_fn("tagged-blobs", &tagged_blob_list, OBJ_BLOB,
+				      info->path_fn_data);
+
+		trace2_data_intmax("path-walk", ctx.repo, "tags", tags.nr);
+		trace2_region_leave("path-walk", "tag-walk", info->revs->repo);
+		oid_array_clear(&tags);
+		oid_array_clear(&tagged_tree_list);
+		oid_array_clear(&tagged_blob_list);
+	}
 
 	string_list_append(&ctx.path_stack, root_path);
 
