@@ -1603,6 +1603,7 @@ static int set_remote_branches(const char *remotename, const char **branches,
 	}
 
 	if (!add_mode && remove_all_fetch_refspecs(key.buf)) {
+		error(_("could not remove existing fetch refspec"));
 		strbuf_release(&key);
 		return 1;
 	}
