@@ -158,7 +158,7 @@ static int add(int argc, const char **argv, const char *prefix)
 {
 	int fetch = 0, fetch_tags = TAGS_DEFAULT;
 	unsigned mirror = MIRROR_NONE;
-	struct string_list track = STRING_LIST_INIT_NODUP;
+	struct strvec track = STRVEC_INIT;
 	const char *master = NULL;
 	struct remote *remote;
 	struct strbuf buf = STRBUF_INIT, buf2 = STRBUF_INIT;
@@ -171,8 +171,8 @@ static int add(int argc, const char **argv, const char *prefix)
 			    N_("import all tags and associated objects when fetching\n"
 			       "or do not fetch any tag at all (--no-tags)"),
 			    TAGS_SET),
-		OPT_STRING_LIST('t', "track", &track, N_("branch"),
-				N_("branch(es) to track")),
+		OPT_STRVEC('t', "track", &track, N_("branch"),
+			   N_("branch(es) to track")),
 		OPT_STRING('m', "master", &master, N_("branch"), N_("master branch")),
 		OPT_CALLBACK_F(0, "mirror", &mirror, "(push|fetch)",
 			N_("set up remote as a mirror to push to or fetch from"),
@@ -210,10 +210,9 @@ static int add(int argc, const char **argv, const char *prefix)
 		strbuf_reset(&buf);
 		strbuf_addf(&buf, "remote.%s.fetch", name);
 		if (track.nr == 0)
-			string_list_append(&track, "*");
+			strvec_push(&track, "*");
 		for (i = 0; i < track.nr; i++) {
-			add_branch(buf.buf, track.items[i].string,
-				   name, mirror, &buf2);
+			add_branch(buf.buf, track.v[i], name, mirror, &buf2);
 		}
 	}
 
@@ -246,7 +245,7 @@ static int add(int argc, const char **argv, const char *prefix)
 
 	strbuf_release(&buf);
 	strbuf_release(&buf2);
-	string_list_clear(&track, 0);
+	strvec_clear(&track);
 
 	return 0;
 }
