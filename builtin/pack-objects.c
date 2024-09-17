@@ -266,7 +266,7 @@ struct configured_exclusion {
 static struct oidmap configured_exclusions;
 
 static struct oidset excluded_by_config;
-static int name_hash_version = 1;
+static int name_hash_version = -1;
 
 static void validate_name_hash_version(void)
 {
@@ -4608,6 +4608,9 @@ int cmd_pack_objects(int argc,
 
 	if (pack_to_stdout || !rev_list_all)
 		write_bitmap_index = 0;
+
+	if (name_hash_version < 0)
+		name_hash_version = (int)git_env_ulong("GIT_TEST_NAME_HASH_VERSION", 1);
 
 	validate_name_hash_version();
 	if (write_bitmap_index && name_hash_version != 1) {
