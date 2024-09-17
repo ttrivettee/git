@@ -420,6 +420,9 @@ test_bitmap_cases () {
 			cat >expect <<-\EOF &&
 			error: missing value for '\''pack.preferbitmaptips'\''
 			EOF
+
+			# Disable --full-name-hash test due to stderr comparison.
+			GIT_TEST_FULL_NAME_HASH=0 \
 			git repack -adb 2>actual &&
 			test_cmp expect actual
 		)
