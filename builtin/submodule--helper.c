@@ -30,6 +30,7 @@
 #include "advice.h"
 #include "branch.h"
 #include "list-objects-filter-options.h"
+#include <signal.h>
 
 #define OPT_QUIET (1 << 0)
 #define OPT_CACHED (1 << 1)
@@ -695,6 +696,7 @@ static void status_submodule(const char *path, const struct object_id *ce_oid,
 
 	if (flags & OPT_RECURSIVE) {
 		struct child_process cpr = CHILD_PROCESS_INIT;
+		int res;
 
 		cpr.git_cmd = 1;
 		cpr.dir = path;
@@ -710,7 +712,10 @@ static void status_submodule(const char *path, const struct object_id *ce_oid,
 		if (flags & OPT_QUIET)
 			strvec_push(&cpr.args, "--quiet");
 
-		if (run_command(&cpr))
+		res = run_command(&cpr);
+		if (res == SIGPIPE + 128)
+			raise(SIGPIPE);
+		else if (res)
 			die(_("failed to recurse into submodule '%s'"), path);
 	}
 
