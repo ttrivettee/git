@@ -3126,6 +3126,7 @@ out:
 		free_hashfile(f);
 	strbuf_release(&sb);
 	free(ieot);
+	free(eoie_c);
 	return ret;
 }
 
