@@ -82,6 +82,28 @@ have_t2_data_event () {
 	grep -e '"event":"data".*"category":"'"$c"'".*"key":"'"$k"'"'
 }
 
+start_git_in_background () {
+	git "$@" &
+	git_pid=$!
+	nr_tries_left=10
+	while true
+	do
+		if test $nr_tries_left -eq 0
+		then
+			kill $git_pid
+			exit 1
+		fi
+		sleep 1
+		nr_tries_left=$(($nr_tries_left - 1))
+	done > /dev/null 2>&1 &
+	watchdog_pid=$!
+	wait $git_pid
+}
+
+stop_git_and_watchdog () {
+	kill $git_pid $watchdog_pid
+}
+
 test_expect_success 'explicit daemon start and stop' '
 	test_when_finished "stop_daemon_delete_repo test_explicit" &&
 
@@ -905,6 +927,23 @@ test_expect_success "submodule absorbgitdirs implicitly starts daemon" '
 	# Confirm that the trace2 log contains a record of the
 	# daemon starting.
 	test_subcommand git fsmonitor--daemon start <super-sub.trace
+'
+
+test_expect_success "submodule implicitly starts daemon by pull" '
+	test_atexit "stop_git_and_watchdog" &&
+	test_when_finished "rm -rf cloned; \
+			    rm -rf super; \
+			    rm -rf sub" &&
+
+	create_super super &&
+	create_sub sub &&
+
+	git -C super submodule add ../sub ./dir_1/dir_2/sub &&
+	git -C super commit -m "add sub" &&
+	git clone --recurse-submodules super cloned &&
+
+	git -C cloned/dir_1/dir_2/sub config core.fsmonitor true &&
+	start_git_in_background -C cloned pull --recurse-submodules
 '
 
 # On a case-insensitive file system, confirm that the daemon
