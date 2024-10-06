@@ -401,7 +401,7 @@ test_expect_success 'multi-squash only fires up editor once' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep ONCE output | wc -l) &&
+	count=$(grep ONCE output | wc -l | tr -d '[:space:]') &&
 	test 1 = "$count"
 '
 
@@ -416,7 +416,7 @@ test_expect_success 'multi-fixup does not fire up editor' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep NEVER output | wc -l) &&
+	count=$(grep NEVER output | wc -l | tr -d '[:space:]') &&
 	test 0 = "$count" &&
 	git checkout @{-1} &&
 	git branch -D multi-fixup
@@ -436,7 +436,7 @@ test_expect_success 'commit message used after conflict' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep ONCE output | wc -l) &&
+	count=$(grep ONCE output | wc -l | tr -d '[:space:]') &&
 	test 1 = "$count" &&
 	git checkout @{-1} &&
 	git branch -D conflict-fixup
@@ -456,7 +456,7 @@ test_expect_success 'commit message retained after conflict' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep TWICE output | wc -l) &&
+	count=$(grep TWICE output | wc -l | tr -d '[:space:]') &&
 	test 2 = "$count" &&
 	git checkout @{-1} &&
 	git branch -D conflict-squash
@@ -501,7 +501,7 @@ test_expect_success 'squash ignores comments' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep ONCE output | wc -l) &&
+	count=$(grep ONCE output | wc -l | tr -d '[:space:]') &&
 	test 1 = "$count" &&
 	git checkout @{-1} &&
 	git branch -D skip-comments
@@ -519,7 +519,7 @@ test_expect_success 'squash ignores blank lines' '
 	) &&
 	test $base = $(git rev-parse HEAD^) &&
 	git show >output &&
-	count=$(grep ONCE output | wc -l) &&
+	count=$(grep ONCE output | wc -l | tr -d '[:space:]') &&
 	test 1 = "$count" &&
 	git checkout @{-1} &&
 	git branch -D skip-blank-lines
