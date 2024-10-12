@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description='test fetching over git protocol'
+test_description='test fetching over git protocol and daemon rejects invalid options'
 GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME=main
 export GIT_TEST_DEFAULT_INITIAL_BRANCH_NAME
 
@@ -8,6 +8,31 @@ TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
 
 . "$TEST_DIRECTORY"/lib-git-daemon.sh
+
+test_expect_success 'daemon rejects invalid --init-timeout values' '
+	for arg in "3a" "-3"
+	do
+		test_must_fail git daemon --init-timeout="$arg" 2>actual_error &&
+		test_write_lines "fatal: invalid init-timeout '\''$arg'\'', expecting a non-negative integer" >expected &&
+		test_cmp actual_error expected || return 1
+	done
+'
+
+test_expect_success 'daemon rejects invalid --timeout values' '
+	for arg in "3a" "-3"
+	do
+		test_must_fail git daemon --timeout="$arg" 2>actual_error &&
+		test_write_lines "fatal: invalid timeout '\''$arg'\'', expecting a non-negative integer" >expected &&
+		test_cmp actual_error expected || return 1
+	done
+'
+
+test_expect_success 'daemon rejects invalid --max-connections values' '
+	test_must_fail git daemon --max-connections=3a 2>actual_error &&
+	test_write_lines "fatal: invalid max-connections '\''3a'\'', expecting an integer" >expected &&
+	test_cmp actual_error expected
+'
+
 start_git_daemon
 
 check_verbose_connect () {
