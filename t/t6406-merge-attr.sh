@@ -118,6 +118,13 @@ test_expect_success 'retry the merge with longer context' '
 	grep "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" actual
 '
 
+test_expect_success 'invalid conflict-marker-size 3a' '
+    echo "text conflict-marker-size=3a" >>.gitattributes &&
+    test_must_fail git checkout -m text 2>actual_error &&
+    test_write_lines "fatal: invalid marker-size '\''3a'\'', expecting an integer" >expected &&
+    test_cmp actual_error expected
+'
+
 test_expect_success 'custom merge backend' '
 
 	echo "* merge=union" >.gitattributes &&
