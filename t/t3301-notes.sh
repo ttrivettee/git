@@ -1567,4 +1567,60 @@ test_expect_success 'empty notes do not invoke the editor' '
 	git notes remove HEAD
 '
 
+test_expect_success 'git notes add with -m/-F invokes editor with -e' '
+	test_commit 19th &&
+	MSG="Edited notes message" git notes add -m "Initial notes message" -e &&
+	echo "Edited notes message" >expect &&
+	git notes show >actual &&
+	test_cmp expect actual &&
+	git notes remove HEAD &&
+
+	# Add a note using -F and edit it
+	echo "Note from file" >note_file &&
+	MSG="Edited note from file" git notes add -F note_file -e &&
+	echo "Edited note from file" >expect &&
+	git notes show >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'git notes append with -m/-F invokes the editor with -e' '
+	test_commit 20th &&
+	git notes add -m "Initial note message" &&
+	MSG="Appended edited note message" git notes append -m "New appended note" -e &&
+
+	# Verify the note content was appended and edited
+	echo "Initial note message" >expect &&
+	echo "" >>expect &&
+	echo "Appended edited note message" >>expect &&
+	git notes show >actual &&
+	test_cmp expect actual &&
+	git notes remove HEAD &&
+
+	#Append a note using -F and edit it
+	echo "Note from file" >note_file &&
+	git notes add -m "Initial note message" &&
+	MSG="Appended edited note from file" git notes append -F note_file -e &&
+
+	# Verify notes from file has been edited in editor and appended
+	echo "Initial note message" >expect &&
+	echo "" >>expect &&
+	echo "Appended edited note from file" >>expect &&
+	git notes show >actual &&
+	test_cmp expect actual
+'
+
+test_expect_success 'git notes with a combination of -m, -F and -e invokes editor' '
+	test_commit 21st &&
+	echo "foo-file-1" >note_1 &&
+	echo "foo-file-2" >note_2 &&
+
+	MSG="Collapsed edited notes" git notes append -F note_1 -m "message-1" -F note_2 -e &&
+
+	# Verify that combined messages from file and -m have been edited
+
+	echo "Collapsed edited notes" >expect &&
+	git notes show >actual &&
+	test_cmp expect actual
+'
+
 test_done
