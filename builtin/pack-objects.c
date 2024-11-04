@@ -4589,6 +4589,12 @@ int cmd_pack_objects(int argc,
 	if (use_full_name_hash < 0)
 		use_full_name_hash = git_env_bool("GIT_TEST_FULL_NAME_HASH", 0);
 
+	if (shallow && use_full_name_hash > 0 &&
+	    !git_env_bool("GIT_TEST_USE_FULL_NAME_HASH_WITH_SHALLOW", 0)) {
+		use_full_name_hash = 0;
+		warning("the --full-name-hash option is disabled with the --shallow option");
+	}
+
 	if (write_bitmap_index && use_full_name_hash > 0) {
 		warning(_("currently, the --full-name-hash option is incompatible with --write-bitmap-index"));
 		use_full_name_hash = 0;

@@ -66,6 +66,7 @@ test_size 'shallow pack size' '
 '
 
 test_perf 'shallow pack with --full-name-hash' '
+	GIT_TEST_USE_FULL_NAME_HASH_WITH_SHALLOW=1 \
 	git pack-objects --stdout --revs --sparse --shallow --full-name-hash <in-shallow >out
 '
 
