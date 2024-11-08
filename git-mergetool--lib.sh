@@ -159,14 +159,18 @@ check_unchanged () {
 }
 
 valid_tool () {
-	setup_tool "$1" && return 0
+	setup_tool "$1" 2>/dev/null && return 0
 	cmd=$(get_merge_tool_cmd "$1")
 	test -n "$cmd"
 }
 
 setup_user_tool () {
 	merge_tool_cmd=$(get_merge_tool_cmd "$tool")
-	test -n "$merge_tool_cmd" || return 1
+	if test -z "$merge_tool_cmd"
+	then
+		echo >&2 "error: ${TOOL_MODE}tool.$tool.cmd not set for tool '$tool'"
+		return 1
+	fi
 
 	diff_cmd () {
 		( eval $merge_tool_cmd )
@@ -255,7 +259,7 @@ setup_tool () {
 
 	# Now let the user override the default command for the tool.  If
 	# they have not done so then this will return 1 which we ignore.
-	setup_user_tool
+	setup_user_tool 2>/dev/null
 
 	if ! list_tool_variants | grep -q "^$tool$"
 	then
