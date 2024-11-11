@@ -263,6 +263,7 @@ setup_tool () {
 
 	if ! list_tool_variants | grep -q "^$tool$"
 	then
+		echo "error: unknown ${tool%[0-9]} variant '$tool'" >&2
 		return 1
 	fi
 
