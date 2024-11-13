@@ -105,6 +105,7 @@ test_expect_success 'push with receive.fsckobjects' '
 	cat >exp <<-EOF &&
 	To dst
 	!	refs/heads/main:refs/heads/test	[remote rejected] (unpacker error)
+	Done
 	EOF
 	test_must_fail git push --porcelain dst main:refs/heads/test >act &&
 	test_cmp exp act
