@@ -13,6 +13,7 @@
 #include "delta.h"
 #include "pack.h"
 #include "path.h"
+#include "read-cache-ll.h"
 #include "refs.h"
 #include "csum-file.h"
 #include "quote.h"
@@ -1413,6 +1414,8 @@ static int tree_content_set(
 		die("Empty path component found in input");
 	if (!*slash1 && !S_ISDIR(mode) && subtree)
 		die("Non-directories cannot have subtrees");
+	if (!verify_path(p, mode))
+		die("invalid path '%s'", p);
 
 	if (!root->tree)
 		load_tree(root);
@@ -1468,8 +1471,6 @@ static int tree_content_set(
 		root->tree = t = grow_tree_content(t, t->entry_count);
 	e = new_tree_entry();
 	e->name = to_atom(p, n);
-	if (is_dot_or_dotdot(e->name->str_dat))
-		die("path %s contains invalid component", p);
 	e->versions[0].mode = 0;
 	oidclr(&e->versions[0].oid, the_repository->hash_algo);
 	t->entries[t->entry_count++] = e;
