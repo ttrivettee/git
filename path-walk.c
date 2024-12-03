@@ -11,6 +11,7 @@
 #include "list-objects.h"
 #include "object.h"
 #include "oid-array.h"
+#include "prio-queue.h"
 #include "revision.h"
 #include "string-list.h"
 #include "strmap.h"
@@ -50,15 +51,49 @@ struct path_walk_context {
 	struct strmap paths_to_lists;
 
 	/**
-	 * Store the current list of paths in a stack, to
-	 * facilitate depth-first-search without recursion.
+	 * Store the current list of paths in a priority queue,
+	 * using object type as a sorting mechanism, mostly to
+	 * make sure blobs are popped off the stack first. No
+	 * other sort is made, so within each object type it acts
+	 * like a stack and performs a DFS within the trees.
 	 *
 	 * Use path_stack_pushed to indicate whether a path
 	 * was previously added to path_stack.
 	 */
-	struct string_list path_stack;
+	struct prio_queue path_stack;
 	struct strset path_stack_pushed;
 };
+
+static int compare_by_type(const void *one, const void *two, void *cb_data)
+{
+	struct type_and_oid_list *list1, *list2;
+	const char *str1 = one;
+	const char *str2 = two;
+	struct path_walk_context *ctx = cb_data;
+
+	list1 = strmap_get(&ctx->paths_to_lists, str1);
+	list2 = strmap_get(&ctx->paths_to_lists, str2);
+
+	/*
+	 * If object types are equal, then use path comparison.
+	 */
+	if (!list1 || !list2 || list1->type == list2->type)
+		return strcmp(str1, str2);
+
+	/* Prefer tags to be popped off first. */
+	if (list1->type == OBJ_TAG)
+		return -1;
+	if (list2->type == OBJ_TAG)
+		return 1;
+
+	/* Prefer blobs to be popped off second. */
+	if (list1->type == OBJ_BLOB)
+		return -1;
+	if (list2->type == OBJ_BLOB)
+		return 1;
+
+	return 0;
+}
 
 static void push_to_stack(struct path_walk_context *ctx,
 			  const char *path)
@@ -67,7 +102,7 @@ static void push_to_stack(struct path_walk_context *ctx,
 		return;
 
 	strset_add(&ctx->path_stack_pushed, path);
-	string_list_append(&ctx->path_stack, path);
+	prio_queue_put(&ctx->path_stack, xstrdup(path));
 }
 
 static int add_children(struct path_walk_context *ctx,
@@ -372,8 +407,8 @@ static void setup_pending_objects(struct path_walk_info *info,
 			const char *tagged_blob_path = "/tagged-blobs";
 			tagged_blobs->type = OBJ_BLOB;
 			tagged_blobs->maybe_interesting = 1;
-			push_to_stack(ctx, tagged_blob_path);
 			strmap_put(&ctx->paths_to_lists, tagged_blob_path, tagged_blobs);
+			push_to_stack(ctx, tagged_blob_path);
 		} else {
 			oid_array_clear(&tagged_blobs->oids);
 			free(tagged_blobs);
@@ -384,8 +419,8 @@ static void setup_pending_objects(struct path_walk_info *info,
 			const char *tag_path = "/tags";
 			tags->type = OBJ_TAG;
 			tags->maybe_interesting = 1;
-			push_to_stack(ctx, tag_path);
 			strmap_put(&ctx->paths_to_lists, tag_path, tags);
+			push_to_stack(ctx, tag_path);
 		} else {
 			oid_array_clear(&tags->oids);
 			free(tags);
@@ -410,7 +445,10 @@ int walk_objects_by_path(struct path_walk_info *info)
 		.repo = info->revs->repo,
 		.revs = info->revs,
 		.info = info,
-		.path_stack = STRING_LIST_INIT_DUP,
+		.path_stack = {
+			.compare = compare_by_type,
+			.cb_data = &ctx
+		},
 		.path_stack_pushed = STRSET_INIT,
 		.paths_to_lists = STRMAP_INIT
 	};
@@ -493,8 +531,7 @@ int walk_objects_by_path(struct path_walk_info *info)
 
 	trace2_region_enter("path-walk", "path-walk", info->revs->repo);
 	while (!ret && ctx.path_stack.nr) {
-		char *path = ctx.path_stack.items[ctx.path_stack.nr - 1].string;
-		ctx.path_stack.nr--;
+		char *path = prio_queue_get(&ctx.path_stack);
 		paths_nr++;
 
 		ret = walk_path(&ctx, path);
@@ -511,8 +548,7 @@ int walk_objects_by_path(struct path_walk_info *info)
 			push_to_stack(&ctx, entry->key);
 
 		while (!ret && ctx.path_stack.nr) {
-			char *path = ctx.path_stack.items[ctx.path_stack.nr - 1].string;
-			ctx.path_stack.nr--;
+			char *path = prio_queue_get(&ctx.path_stack);
 			paths_nr++;
 
 			ret = walk_path(&ctx, path);
@@ -526,6 +562,6 @@ int walk_objects_by_path(struct path_walk_info *info)
 
 	clear_strmap(&ctx.paths_to_lists);
 	strset_clear(&ctx.path_stack_pushed);
-	string_list_clear(&ctx.path_stack, 0);
+	clear_prio_queue(&ctx.path_stack);
 	return ret;
 }
