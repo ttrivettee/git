@@ -658,7 +658,7 @@ digressions that may be interesting at this point are:
 
   * linkgit:giteveryday[7]: Everyday Git with 20 Commands Or So.
 
-  * linkgit:gitcvs-migration[7]: Git for CVS users.
+  * linkgit:gitcvs-migration[7]: Git users.
 
 SEE ALSO
 --------
